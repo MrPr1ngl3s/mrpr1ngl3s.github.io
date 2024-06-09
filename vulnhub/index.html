@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link  rel="stylesheet" type="text/css" href="/assets/css/styles_writeups.css">
+    <link  rel="stylesheet" type="text/css" href="/assets/js/script.js">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">        
+    <title>Writeups</title>
+</head>
+<body>
+    <div class="menu">
+        <div id="mySidepanel" class="sidepanel">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+            <a href="/writeups">Writeups</a>
+            <a href="/">Home</a>
+            <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
+        </div>
+        
+        <button class="openbtn" onclick="openNav()">☰</button>  
+    </div>
+    <script>
+        function openNav() {
+        if (window.innerWidth <= 1000) {
+            document.getElementById("mySidepanel").style.display = "block";
+        } else {
+            document.getElementById("mySidepanel").style.width = "25%";
+        }
+        }
+      
+        function closeNav() {
+        if (window.innerWidth <= 1000) {
+            document.getElementById("mySidepanel").style.display = "none";
+        } else {
+            document.getElementById("mySidepanel").style.width = "0";
+        }
+      
+        }
+      
+        </script>
+      
+
+    <div class="main">
+        <header>
+            <h1>Vulnhub Writeups</h1>
+            <a href="https://www.vulnhub.com/" target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/vuln.png"/></a>
+
+        </header>
+    
+        <div class="writeups">
+            <div class="writeup">
+                <a href="https://www.vulnhub.com/entry/darkhole-1,724/"  target="_blank"><img style="float: right; margin-left:60px; height:65px;" src="/img/vuln.png"/></a>
+                <h2><a href="darkhole1">Vulnhub - DarkHole: 1</a></h2>
+                <p style="color: white;">Resolución de la máquina DarkHole: 1</p>
+            </div>
+            <hr>
+            <div class="writeup">
+                <a href="https://www.vulnhub.com/entry/buffemr-101,717/"  target="_blank"><img style="float: right; margin-left:60px; height:65px;" src="/img/vuln.png"/></a>
+                <h2><a href="buffemr">Vulnhub - BuffEMR</a></h2>
+                <p style="color: white;">Resolución de la máquina BuffEMR</p>
+            </div>
+        </div>
+    </div>
+
+    </body>
+</html>
