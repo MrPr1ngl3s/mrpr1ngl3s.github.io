@@ -1064,7 +1064,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240513171153.png">
 <p>Tras realizar la configuración ya podemos acceder al contenedor.</p>
 <img src="Img/Pasted image 20240513171335.png">
-<p>Si miramos en la raíz del contenedor que contiene el juego vemos un archivo <strong>entrypoint.sh</strong> y un directorio <strong>docker-entrypoint.q</strong>.</p>
+<p>Si miramos en la raíz del contenedor que contiene el juego vemos un archivo <strong>entrypoint.sh</strong> y un directorio <strong>docker-entrypoint.d</strong>.</p>
 <img src="Img/Pasted image 20240513180418.png">
 <p>El <strong>entrypoint.sh</strong> es el archivo el cual va a indicar al contenedor que hacer después de arrancar.</p>
 <pre><code>game-tester@game-server:~$ cat /entrypoint.sh 
@@ -1077,8 +1077,8 @@ if [ -x &quot;${ep}&quot; ]; then
 done
 tail -f /dev/null
 game-tester@game-server:~$ </code></pre>
-<p>Vemos que el archivo itera por cada valor existente en el directorio <strong>docker-entrypoint.q</strong> y si el archivo el archivo tiene los permisos necesarios, lo ejecuta.</p>
-<p>Dentro del directorio <strong>docker-entrypoint.q</strong> solo hay un archivo, el cual realiza unas instrucciones.</p>
+<p>Vemos que el archivo itera por cada valor existente en el directorio <strong>docker-entrypoint.d</strong> y si el archivo el archivo tiene los permisos necesarios, lo ejecuta.</p>
+<p>Dentro del directorio <strong>docker-entrypoint.d</strong> solo hay un archivo, el cual realiza unas instrucciones.</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ ls -la /docker-entrypoint.d </span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true"></a><span class="ex">total</span> 12</span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true"></a><span class="ex">drwxrwxr-t</span> 2 root 1000 4096 May 13 15:19 .</span>
