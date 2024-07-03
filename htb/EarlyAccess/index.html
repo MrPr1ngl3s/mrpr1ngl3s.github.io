@@ -578,7 +578,7 @@ if (window.innerWidth <= 1000) {
 <p>Ya sabiendo las columnas vamos a averiguar los datos de las columnas <strong>name</strong>, <strong>email</strong> y <strong>password</strong>.</p>
 <img src="Img/Pasted image 20240513094726.png">
 <img src="Img/Pasted image 20240513094751.png">
-<p>Vemos todas las contraseña de los usuarios de la pagina, pero todas esa hacheadas, por lo que vamos a utilizar la herramienta <strong>john</strong> para poder averiguar los hashes.</p>
+<p>Vemos todas las contraseña de los usuarios de la pagina, pero todas esa hasheadas, por lo que vamos a utilizar la herramienta <strong>john</strong> para poder averiguar los hashes.</p>
 <img src="Img/Pasted image 20240513101946.png">
 <div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>❯ <span class="ex">john</span> -w=/usr/share/wordlists/rockyou.txt hashes</span></code></pre></div>
 <table>
@@ -726,7 +726,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240513111546.png">
 <p>Mirando el código vemos que permite hashes personalizados si la variable <strong>debug</strong> esta establecida.</p>
 <img src="Img/Pasted image 20240513111736.png">
-<p>Pero aparte de haches se podría probar con otras funciones, en este caso vamos a utilizar la función <strong>system</strong> y donde está la variable de <strong>password</strong> a hachear, lo cambiamos y ponemos un comando a nivel de sistema para que nos lo ejecute.</p>
+<p>Pero aparte de hashes se podría probar con otras funciones, en este caso vamos a utilizar la función <strong>system</strong> y donde está la variable de <strong>password</strong> a hashear, lo cambiamos y ponemos un comando a nivel de sistema para que nos lo ejecute.</p>
 <img src="Img/Pasted image 20240513111937.png">
 <div class="sourceCode" id="cb18"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>❯ php --interactive</span></code></pre></div>
 <table>
@@ -1178,7 +1178,7 @@ drwxrwxr-x  2 root root  4096 Aug 18  2021 views</code></pre>
 <span id="cb55-11"><a href="#cb55-11" aria-hidden="true"></a><span class="ex">-bash-4.4</span>$ ls -l /bin/bash</span>
 <span id="cb55-12"><a href="#cb55-12" aria-hidden="true"></a><span class="ex">-rwsr-xr-x</span> 1 root root 1099016 May 15  2017 /bin/bash</span>
 <span id="cb55-13"><a href="#cb55-13" aria-hidden="true"></a><span class="ex">-bash-4.4</span>$ </span></code></pre></div>
-<p>Si miramos el <strong>/etc/shadow</strong> podemos ver la contraseña hacheada del usuario <strong>game-adm</strong>.</p>
+<p>Si miramos el <strong>/etc/shadow</strong> podemos ver la contraseña hasheada del usuario <strong>game-adm</strong>.</p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true"></a><span class="ex">bash-4.4</span># grep <span class="st">&quot;game-adm&quot;</span> /etc/shadow</span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true"></a><span class="ex">game-adm</span>:<span class="va">$6$zbRQg</span>.JO7dBWcZ<span class="va">$DWEKGCPIilhzWjJ</span>/N0WRp.FNArirqqzEMeHTaA8DAJjPdu8h52v0UZncJD8Df.0ncf6X2mjKYnH19RfGRneWX/:18822:0:99999:7:::</span>
 <span id="cb56-3"><a href="#cb56-3" aria-hidden="true"></a><span class="ex">bash-4.4</span># </span></code></pre></div>
