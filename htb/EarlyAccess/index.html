@@ -622,7 +622,7 @@ if (window.innerWidth <= 1000) {
 <p>Si tramitamos la petición con <strong>BurpSuite</strong> vemos lo siguiente.</p>
 <img src="Img/Pasted image 20240513104258.png">
 <img src="Img/Pasted image 20240513104501.png">
-<p>Al interceptar la petición vemos que se tramita a la ruta <strong>/actions/</strong>.</p>
+<p>Al interceptar la petición vemos que se tramita a la ruta <strong>/actions/hash.php</strong>.</p>
 <p>Utilizamos la herramienta <strong>wfuzz</strong> para descubrir los archivos que contenga el directorio <strong>/actions</strong>.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>❯ <span class="ex">wfuzz</span> --hc=404 -t 200 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/burp-parameter-names.txt <span class="st">&quot;http://dev.earlyaccess.htb/actions/FUZZ.php&quot;</span></span></code></pre></div>
 <table>
@@ -715,9 +715,9 @@ if (window.innerWidth <= 1000) {
 <span id="cb17-18"><a href="#cb17-18" aria-hidden="true"></a><span class="st">Requests/sec.: 0</span></span></code></pre></div>
 <p>Pero al tratar de acceder a algún archivo del sistema vemos que por motivos de seguridad no es posible leerlos.</p>
 <img src="Img/Pasted image 20240513110645.png">
-<p>Al tratar de leer el contenido del archivo <strong>hash.php</strong>, pero al tratarse de un archivo con extensión <strong>.php</strong> nos lo va a interpretar.</p>
+<p>Tratando de leer el contenido del archivo <strong>hash.php</strong> vemos lo siguiente.</p>
 <img src="Img/Pasted image 20240513110814.png">
-<p>Una forma de poder ver el contenido es mediante wrappers de codificación en base64</p>
+<p>Una forma de poder leer el contenido es mediante wrappers de codificación en base64</p>
 <img src="Img/Pasted image 20240513111229.png">
 <img src="Img/Pasted image 20240513111240.png">
 <p>Teniendo el contenido del archivo en base64, realizamos la decodificación, y lo guardamos al archivo <strong>hash.php</strong>.</p>
