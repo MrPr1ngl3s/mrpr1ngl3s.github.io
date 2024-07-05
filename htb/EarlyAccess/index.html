@@ -1138,7 +1138,7 @@ drwxrwxr-x  2 root root  4096 Aug 18  2021 views</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Teniendo ya la capacidad de tirar el servidor ahora vamos a tratar de añadir un archivo al directorio <strong>docker-entrypoint.d</strong>, pero como no tenemos permisos de escritura es probable que se este utilizando una monturas para poder traer el directorio.</p>
+<p>Teniendo ya la capacidad de tirar el servidor ahora vamos a tratar de añadir un archivo al directorio <strong>docker-entrypoint.d</strong>, pero como no tenemos permisos de escritura es probable que se este utilizando una montura para poder traer el directorio.</p>
 <p>Si buscamos por el sistema, vemos el directorio, el cual tiene los permisos necesarios.</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ find / -name <span class="st">&#39;node-server.sh&#39;</span> <span class="op">2&gt;</span>/dev/null</span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true"></a><span class="ex">/opt/docker-entrypoint.d/node-server.sh</span></span>
