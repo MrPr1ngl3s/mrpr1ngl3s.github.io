@@ -52,11 +52,11 @@ if (window.innerWidth <= 1000) {
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ex">---</span> 10.10.11.110 ping statistics ---</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="ex">1</span> packets transmitted, 1 received, 0% packet loss, time 0ms</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="ex">rtt</span> min/avg/max/mdev = 34.289/34.289/34.289/0.000 ms</span></code></pre></div>
-<p>En el output del comando ejecutado en el parámetro <strong>ttl</strong> se ve que el valor está más cerca del <strong>64</strong> que del <strong>128</strong>, gracias a este parámetro se puede saber el sistema operativo que se está utilizando, en este caso un Linux.</p>
+<p>En el output del comando ejecutado en el parámetro <strong>ttl</strong> se ve que el valor es <strong>64</strong>, gracias a este parámetro se puede saber el sistema operativo que se está utilizando, en este caso un Linux.</p>
 <table>
 <thead>
 <tr class="header">
-<th>TTL</th>
+<th>TTY</th>
 <th>OS        </th>
 </tr>
 </thead>
@@ -176,11 +176,11 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240512092507.png">
 <p>Por lo que para que nos redirija al dominio <strong>earlyaccess.htb</strong>, tenemos que hacerle saber al sistema que la IP <strong>10.10.11.110</strong> hace referencia a ese domino, y eso se puede conseguir indicándoselo en el archivo <strong>/etc/hosts</strong>.</p>
 <img src="Img/Pasted image 20240512093051.png">
-<p>Ahora si utilizamos de nuevo <strong>whatweb</strong> vemos el dominio, además podemos ver el correo <strong>admin@earlyaccess.htb</strong> .</p>
+<p>Ahora si utilizamos de nuevo <strong>whatweb</strong> podemos ver el correo ya podemos ver el dominio, además podemos ver el correo <strong>admin@earlyaccess.htb</strong> .</p>
 <img src="Img/Pasted image 20240512094909.png">
 <img src="Img/Pasted image 20240512094921.png">
 <h2 id="búsqueda-de-vulnerabilidades">Búsqueda de Vulnerabilidades</h2>
-<p>Si accedemos a la pagina, vemos que nos redirige a <strong>https://earlyaccess.htb</strong>.</p>
+<p>Si accedemos a la pagina, vemos que nos redirige a <strong>://earlyaccess.htb</strong>.</p>
 <img src="Img/Pasted image 20240512095606.png">
 <p>Vemos un register y un login.</p>
 <img src="Img/Pasted image 20240512095647.png">
@@ -213,7 +213,6 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240512123651.png">
 <p>Al enviar otro mensaje y acceder a este, vemos que nos salta una ventana emergente</p>
 <img src="Img/Pasted image 20240512123747.png">
-<h2>Explotación</h2>
 <p>Por tanto viendo esto podemos ver que la pagina es vulnerable a un <strong>XSS</strong>.</p>
 <p>Sabiendo esto tratamos de ver nuestra cookie de sesión en la ventana emergente.</p>
 <img src="Img/Pasted image 20240512123848.png">
@@ -277,8 +276,8 @@ if (window.innerWidth <= 1000) {
 <p>Pero como le estamos diciendo que nos desplace a la izquierda los bits <strong>1</strong> posición, el valor final queda en <strong>10</strong>.</p>
 <img src="Img/Pasted image 20240512151126.png">
 <p>Es por eso que al realizar la operatoria el resultado es <strong>130</strong>.</p>
-<img src="Img/Pasted image 20240517123333.png">
-<img src="Img/Pasted image 20240517123512.png">
+<img src="Img/Pasted image 20240512151559.png">
+<img src="Img/Pasted image 20240512151303.png">
 <p>Luego de esa operatoria realiza un <strong>% 256</strong>, que seria el resto de la división entre el resultado de la operatoria del <strong>ord()</strong> y el numero <strong>256</strong>.</p>
 <img src="Img/Pasted image 20240512151828.png">
 <img src="Img/Pasted image 20240512151835.png">
@@ -578,7 +577,7 @@ if (window.innerWidth <= 1000) {
 <p>Ya sabiendo las columnas vamos a averiguar los datos de las columnas <strong>name</strong>, <strong>email</strong> y <strong>password</strong>.</p>
 <img src="Img/Pasted image 20240513094726.png">
 <img src="Img/Pasted image 20240513094751.png">
-<p>Vemos todas las contraseña de los usuarios de la pagina, pero todas esa hasheadas, por lo que vamos a utilizar la herramienta <strong>john</strong> para poder averiguar los hashes.</p>
+<p>Vemos todas las contraseña de los usuarios de la pagina, pero todas esa hacheadas, por lo que vamos a utilizar la herramienta <strong>john</strong> para poder averiguar los hashes.</p>
 <img src="Img/Pasted image 20240513101946.png">
 <div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>❯ <span class="ex">john</span> -w=/usr/share/wordlists/rockyou.txt hashes</span></code></pre></div>
 <table>
@@ -622,7 +621,7 @@ if (window.innerWidth <= 1000) {
 <p>Si tramitamos la petición con <strong>BurpSuite</strong> vemos lo siguiente.</p>
 <img src="Img/Pasted image 20240513104258.png">
 <img src="Img/Pasted image 20240513104501.png">
-<p>Al interceptar la petición vemos que se tramita a la ruta <strong>/actions/hash.php</strong>.</p>
+<p>Al interceptar la petición vemos que se tramita a la ruta <strong>/actions/</strong>.</p>
 <p>Utilizamos la herramienta <strong>wfuzz</strong> para descubrir los archivos que contenga el directorio <strong>/actions</strong>.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>❯ <span class="ex">wfuzz</span> --hc=404 -t 200 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/burp-parameter-names.txt <span class="st">&quot;http://dev.earlyaccess.htb/actions/FUZZ.php&quot;</span></span></code></pre></div>
 <table>
@@ -715,9 +714,9 @@ if (window.innerWidth <= 1000) {
 <span id="cb17-18"><a href="#cb17-18" aria-hidden="true"></a><span class="st">Requests/sec.: 0</span></span></code></pre></div>
 <p>Pero al tratar de acceder a algún archivo del sistema vemos que por motivos de seguridad no es posible leerlos.</p>
 <img src="Img/Pasted image 20240513110645.png">
-<p>Tratando de leer el contenido del archivo <strong>hash.php</strong> vemos lo siguiente.</p>
+<p>Al tratar de leer el contenido del archivo <strong>hash.php</strong>, pero al tratarse de un archivo con extensión <strong>.php</strong> nos lo va a interpretar.</p>
 <img src="Img/Pasted image 20240513110814.png">
-<p>Una forma de poder leer el contenido es mediante wrappers de codificación en base64</p>
+<p>Una forma de poder ver el contenido es mediante wrappers de codificación en base64</p>
 <img src="Img/Pasted image 20240513111229.png">
 <img src="Img/Pasted image 20240513111240.png">
 <p>Teniendo el contenido del archivo en base64, realizamos la decodificación, y lo guardamos al archivo <strong>hash.php</strong>.</p>
@@ -726,7 +725,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240513111546.png">
 <p>Mirando el código vemos que permite hashes personalizados si la variable <strong>debug</strong> esta establecida.</p>
 <img src="Img/Pasted image 20240513111736.png">
-<p>Pero aparte de hashes se podría probar con otras funciones, en este caso vamos a utilizar la función <strong>system</strong> y donde está la variable de <strong>password</strong> a hashear, lo cambiamos y ponemos un comando a nivel de sistema para que nos lo ejecute.</p>
+<p>Pero aparte de haches se podría probar con otras funciones, en este caso vamos a utilizar la función <strong>system</strong> y donde está la variable de <strong>password</strong> a hachear, lo cambiamos y ponemos un comando a nivel de sistema para que nos lo ejecute.</p>
 <img src="Img/Pasted image 20240513111937.png">
 <div class="sourceCode" id="cb18"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>❯ php --interactive</span></code></pre></div>
 <table>
@@ -898,7 +897,6 @@ if (window.innerWidth <= 1000) {
 <span id="cb30-12"><a href="#cb30-12" aria-hidden="true"></a><span class="st">Last login: Sun Sep  5 15:56:50 2021 from 10.10.14.6</span></span>
 <span id="cb30-13"><a href="#cb30-13" aria-hidden="true"></a><span class="st">drew@earlyaccess:~$ </span></span></code></pre></div>
 <p>Vemos las primera flag.</p>
-<h2>Post-explotación</h2>
 <div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ ls</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="ex">user.txt</span></span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ cat user.txt </span>
@@ -1067,16 +1065,16 @@ if (window.innerWidth <= 1000) {
 <p>Si miramos en la raíz del contenedor que contiene el juego vemos un archivo <strong>entrypoint.sh</strong> y un directorio <strong>docker-entrypoint.d</strong>.</p>
 <img src="Img/Pasted image 20240513180418.png">
 <p>El <strong>entrypoint.sh</strong> es el archivo el cual va a indicar al contenedor que hacer después de arrancar.</p>
-<pre><code>game-tester@game-server:~$ cat /entrypoint.sh 
-#!/bin/bash
-for ep in /docker-entrypoint.d/*; do
-if [ -x &quot;${ep}&quot; ]; then
-    echo &quot;Running: ${ep}&quot;
-    &quot;${ep}&quot; &amp;
-  fi
-done
-tail -f /dev/null
-game-tester@game-server:~$ </code></pre>
+<div class="sourceCode" id="cb46"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ cat /entrypoint.sh </span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true"></a><span class="kw">for</span> <span class="ex">ep</span> in /docker-entrypoint.d/*<span class="kw">;</span> <span class="kw">do</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="ot">-x</span> <span class="st">&quot;</span><span class="va">${ep}</span><span class="st">&quot;</span><span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Running: </span><span class="va">${ep}</span><span class="st">&quot;</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true"></a>    <span class="st">&quot;</span><span class="va">${ep}</span><span class="st">&quot;</span> <span class="kw">&amp;</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true"></a>  <span class="kw">fi</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true"></a><span class="kw">done</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true"></a><span class="fu">tail</span> -f /dev/null</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ </span></code></pre></div>
 <p>Vemos que el archivo itera por cada valor existente en el directorio <strong>docker-entrypoint.d</strong> y si el archivo el archivo tiene los permisos necesarios, lo ejecuta.</p>
 <p>Dentro del directorio <strong>docker-entrypoint.d</strong> solo hay un archivo, el cual realiza unas instrucciones.</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ ls -la /docker-entrypoint.d </span>
@@ -1095,16 +1093,16 @@ game-tester@game-server:~$ </code></pre>
 <span id="cb47-14"><a href="#cb47-14" aria-hidden="true"></a><span class="fu">sudo</span> -u node node server.js</span>
 <span id="cb47-15"><a href="#cb47-15" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ </span></code></pre></div>
 <p>Vemos la ruta <strong>/usr/src/app</strong>, si accedemos vemos un archivo <strong>server.js</strong>.</p>
-<pre><code>game-tester@game-server:~$ ls -la /usr/src/app
-total 48
-drwxrwxr-x  5 root root  4096 Aug 18  2021 .
-drwxr-xr-x  1 root root  4096 Aug 19  2021 ..
-drwxrwxr-x  2 root root  4096 Aug 18  2021 assets
-drwxrwxr-x 68 root root  4096 Aug 18  2021 node_modules
--rw-rw-r--  1 root root 18659 Aug 18  2021 package-lock.json
--rw-rw-r--  1 root root   315 Aug 18  2021 package.json
--rw-rw-r--  1 root root  2771 Aug 18  2021 server.js
-drwxrwxr-x  2 root root  4096 Aug 18  2021 views</code></pre>
+<div class="sourceCode" id="cb48"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ ls -la /usr/src/app</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true"></a><span class="ex">total</span> 48</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true"></a><span class="ex">drwxrwxr-x</span>  5 root root  4096 Aug 18  2021 .</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span>  1 root root  4096 Aug 19  2021 ..</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true"></a><span class="ex">drwxrwxr-x</span>  2 root root  4096 Aug 18  2021 assets</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true"></a><span class="ex">drwxrwxr-x</span> 68 root root  4096 Aug 18  2021 node_modules</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true"></a><span class="ex">-rw-rw-r--</span>  1 root root 18659 Aug 18  2021 package-lock.json</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true"></a><span class="ex">-rw-rw-r--</span>  1 root root   315 Aug 18  2021 package.json</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true"></a><span class="ex">-rw-rw-r--</span>  1 root root  2771 Aug 18  2021 server.js</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true"></a><span class="ex">drwxrwxr-x</span>  2 root root  4096 Aug 18  2021 views</span></code></pre></div>
 <p>El archivo contiene el código fuente del juego.</p>
 <img src="Img/Pasted image 20240513172327.png">
 <p>Viendo esta parte del codigo ya podemos detectar una forma de provocar un error al servidor, como la aplicación no busca números negativos, el bucle <strong>while</strong> se ejecuta siempre que las rondas no sean cero y en cada ejecución el contador de rondas disminuye. Si usáramos un numero negativo <strong>-1</strong> en la cantidad de rondas, el bucle <strong>while</strong> se ejecutaría sin fin, lo que eventualmente colapsaría el servidor.</p>
@@ -1138,7 +1136,7 @@ drwxrwxr-x  2 root root  4096 Aug 18  2021 views</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Teniendo ya la capacidad de tirar el servidor ahora vamos a tratar de añadir un archivo al directorio <strong>docker-entrypoint.d</strong>, pero como no tenemos permisos de escritura es probable que se este utilizando una montura para poder traer el directorio.</p>
+<p>Teniendo ya la capacidad de tirar el servidor ahora vamos a tratar de añadir un archivo al directorio <strong>docker-entrypoint.d</strong>, pero como no tenemos permisos de escritura es probable que se este utilizando una monturas para poder traer el directorio.</p>
 <p>Si buscamos por el sistema, vemos el directorio, el cual tiene los permisos necesarios.</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ find / -name <span class="st">&#39;node-server.sh&#39;</span> <span class="op">2&gt;</span>/dev/null</span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true"></a><span class="ex">/opt/docker-entrypoint.d/node-server.sh</span></span>
@@ -1178,7 +1176,7 @@ drwxrwxr-x  2 root root  4096 Aug 18  2021 views</code></pre>
 <span id="cb55-11"><a href="#cb55-11" aria-hidden="true"></a><span class="ex">-bash-4.4</span>$ ls -l /bin/bash</span>
 <span id="cb55-12"><a href="#cb55-12" aria-hidden="true"></a><span class="ex">-rwsr-xr-x</span> 1 root root 1099016 May 15  2017 /bin/bash</span>
 <span id="cb55-13"><a href="#cb55-13" aria-hidden="true"></a><span class="ex">-bash-4.4</span>$ </span></code></pre></div>
-<p>Si miramos el <strong>/etc/shadow</strong> podemos ver la contraseña hasheada del usuario <strong>game-adm</strong>.</p>
+<p>Si miramos el <strong>/etc/shadow</strong> podemos ver la contraseña hacheada del usuario <strong>game-adm</strong>.</p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true"></a><span class="ex">bash-4.4</span># grep <span class="st">&quot;game-adm&quot;</span> /etc/shadow</span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true"></a><span class="ex">game-adm</span>:<span class="va">$6$zbRQg</span>.JO7dBWcZ<span class="va">$DWEKGCPIilhzWjJ</span>/N0WRp.FNArirqqzEMeHTaA8DAJjPdu8h52v0UZncJD8Df.0ncf6X2mjKYnH19RfGRneWX/:18822:0:99999:7:::</span>
 <span id="cb56-3"><a href="#cb56-3" aria-hidden="true"></a><span class="ex">bash-4.4</span># </span></code></pre></div>
@@ -1277,12 +1275,13 @@ drwxrwxr-x  2 root root  4096 Aug 18  2021 views</code></pre>
 <span id="cb64-2"><a href="#cb64-2" aria-hidden="true"></a><span class="ex">2f9*****************************</span></span>
 <span id="cb64-3"><a href="#cb64-3" aria-hidden="true"></a><span class="ex">root@earlyaccess</span>:~# </span></code></pre></div>
 
-<p>Aqui se explica con detalle el <a class="link" href="https://github.com/MrPr1ngl3s/AutoPWN/tree/main/HTB/EarlyAccess" target="_blank">AutoPWN</a> de la máquina EarlyAccess.</p>
 
-<hr />
+
 <p>© 2024 - Mr. Pr1ngl3s.</p>
 
 
   </div>
 </body>
 </html>
+
+
