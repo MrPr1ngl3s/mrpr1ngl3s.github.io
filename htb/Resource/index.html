@@ -658,7 +658,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ./test.sh new_key</span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a><span class="ex">Error</span>: Use API for signing with this CA.</span>
 <span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
-<p>Esto es debido a que al indicarle un asterisco, le estamos diciendo que hay contenido, y que después de ese contenido está terminal con la letra <strong>y</strong>, pues lo mismo que con el contenido de <strong>key_origin</strong> empieza por contenido, y termina con la letra <strong>y</strong> .</p>
+<p>Esto es debido a que al indicarle un asterisco, le estamos diciendo que hay contenido, y que después de ese contenido, termina con la letra <strong>y</strong>, pues lo mismo que con el contenido de <strong>key_origin</strong> empieza por contenido, y termina con la letra <strong>y</strong> .</p>
 <p>Pues jugando con este concepto podríamos averiguar la clave privada de la autoridad certificadora (CA) mediante fuerza bruta.</p>
 <div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="co">#!/bin/bash  </span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a>  </span>
