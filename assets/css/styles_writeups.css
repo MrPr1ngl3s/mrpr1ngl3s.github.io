@@ -1,0 +1,247 @@
+/* Menu */
+
+.sidepanel  {
+    width: 0;
+    position: fixed;
+    text-align: center;
+    z-index: 1;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 15%;
+  }
+  
+  
+  .sidepanel a {
+    font-family: "Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    padding: 8px 8px 8px 32px;
+    margin-bottom: 10%;
+    font-size: 25px;
+    color: #ffffff;
+    display: block;
+    transition: 0.3s;
+  
+  }
+  
+  .sidepanel a:hover {
+    color: #960000;
+}
+  
+  .sidepanel .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    }
+  
+  .openbtn {
+    font-size: 20px;
+    cursor: pointer;
+    background-color: transparent;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    transition: 0.3s;
+  
+  }
+  
+  .openbtn:hover {
+    color: #960000;
+}
+  
+  
+  .menu {
+    width: 20%;
+    position: fixed;
+  }
+  
+  /* Menu */
+
+
+
+body {
+background-color: #1d1f20; 
+margin-top: 2.5%;   
+}
+
+
+.main {
+    margin-left: 30%;
+    margin-right: 30%;
+}
+
+
+header {
+    color: #fff;
+    margin-bottom: 10%;
+    display: flex;
+    justify-content: space-between; /* Espacia los elementos alrededor */
+    align-items: center;
+}
+
+
+.writeups {
+    display: block;
+    margin-top: 15% !important;
+}
+
+.writeup {
+    position: relative;
+
+}
+
+
+h1,
+h2,
+p {
+    color: white;
+}
+
+h2 {
+    display: table;
+}
+
+h2:hover {
+    color: rgb(218, 43, 43);
+}
+
+
+img,a {
+    transition: all 300ms;
+}
+
+img:hover {
+    transform: scale(1.15);
+}
+
+a {
+    text-decoration: None;
+    color: inherit;
+}
+
+::selection {
+    background: #3D3D3D;
+}
+
+
+.line {
+    margin: 5% 70% 5% 0%;
+    border-color: #333;
+    border: 0; border-top: 1px solid #999;
+    border-bottom: 1px solid #333;
+    height:0;
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    padding: 20px;
+    bottom: 0;
+    width: 100%;
+    position: fixed;
+}
+
+
+hr {
+    margin-top: 5%;
+    margin-bottom: 5%;
+    border: 1px solid rgb(70, 70, 70);
+    width: 40%;
+    margin-left: 0;
+}
+
+@media only screen and (max-width: 600px) {
+    .writeups,
+    header {
+        margin: 0;
+    }
+
+    header {
+        margin-bottom: 10% !important;
+    }
+
+
+
+}
+
+@media only screen and (max-width: 1000px) {
+    .writeups,
+    header,
+    .main {
+        margin: 0;
+    }
+
+    .main {
+        margin-top: 6%;
+    }
+
+    header {
+        margin-bottom: 10% !important;
+    }
+
+
+        /* Menu */
+
+        .sidepanel {
+            padding-top: 5%;
+            height: 18%;
+            display: none;
+            width: 100%;
+            position: fixed;
+            text-align: center;
+            z-index: 1;
+            top: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+      
+       }
+      
+      
+        .sidepanel a {
+            text-decoration: none;
+            margin-bottom: 0;
+            font-size: 19px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;   
+        }
+        
+        .main {
+            padding-top: 5%;
+        }
+        
+        .menu {
+            position: fixed;
+            width: 100%;
+            z-index: 3;
+            background-color: rgba(22, 22, 22, 0.849);
+            top: 0;
+            left: 0;
+            text-align: center;  
+        }
+        
+        .openbtn {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+        }
+        
+        .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+        }
+      
+      
+        /* Menu */
+
+}

