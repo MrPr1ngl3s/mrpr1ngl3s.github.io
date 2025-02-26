@@ -83,6 +83,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 }
 
 
+
 .sidepanel a {
   padding: 8px 8px 8px 32px;
   text-decoration: none;
@@ -91,8 +92,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   color: #ffffff;
   display: block;
   transition: 0.3s;
-
 }
+
 
 .sidepanel a:hover {
   color: #960000;
