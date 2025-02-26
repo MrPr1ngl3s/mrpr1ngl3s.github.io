@@ -5,41 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Writeup EarlyAccess</title>
  <link rel="stylesheet" href="/assets/css/styles_machine.css" />
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png">
  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png">
  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png">    
 </head>
 <body>
-  <div class="menu">
-    <div id="mySidepanel" class="sidepanel">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-        <a href="/htb">HackTheBox</a>
-        <a href="/">Home</a>
-        <a href="https://mrpr1ngl3s.github.io/blog">Blog</a>
-    </div>
-    
-    <button class="openbtn" onclick="openNav()">☰</button>  
-</div>
-<script>
-function openNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "block";
-} else {
-    document.getElementById("mySidepanel").style.width = "25%";
-}
-}
-
-function closeNav() {
-if (window.innerWidth <= 1000) {
-    document.getElementById("mySidepanel").style.display = "none";
-} else {
-    document.getElementById("mySidepanel").style.width = "0";
-}
-
-}
-
-</script>
-
   <div class="main">
 <a href="https://app.hackthebox.com/machines/EarlyAccess" target="_blank"><img style="float: right; margin-left:60px; height:90px;" src="/img/EarlyAccess.png"/></a>
 <h1 id="earlyaccess">EarlyAccess</h1>
@@ -56,8 +28,8 @@ if (window.innerWidth <= 1000) {
 <table>
 <thead>
 <tr class="header">
-<th>TTY</th>
-<th>OS        </th>
+<th>TTL</th>
+<th>OS</th>
 </tr>
 </thead>
 <tbody>
@@ -72,7 +44,7 @@ if (window.innerWidth <= 1000) {
 </tbody>
 </table>
 <p>Vamos a utilizar la herramienta <strong>Nmap</strong> para escanear los puertos que estén abiertos y servicios que están asociados a estos.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>❯ <span class="fu">nmap</span> -p- --open -sCV -n -Pn 10.10.11.110 -oN Scan</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>❯ <span class="fu">nmap</span> -p- --open -sCV --min-rate 5000 -n -Pn 10.10.11.110 -oN Scan</span></code></pre></div>
 <table>
 <colgroup>
 <col style="width: 8%" />
@@ -174,9 +146,9 @@ if (window.innerWidth <= 1000) {
 </table>
 <p>Utilizamos la herramienta <strong>whatweb</strong> para ver los gestores de contenido que utiliza y vemos que nos redirige al dominio <strong>earlyaccess.htb</strong>.</p>
 <img src="Img/Pasted image 20240512092507.png">
-<p>Por lo que para que nos redirija al dominio <strong>earlyaccess.htb</strong>, tenemos que hacerle saber al sistema que la IP <strong>10.10.11.110</strong> hace referencia a ese domino, y eso se puede conseguir indicándoselo en el archivo <strong>/etc/hosts</strong>.</p>
+<p>Por lo tanto, para que nos redirija al dominio <strong>earlyaccess.htb</strong>, tenemos que hacerle saber al sistema que la IP <strong>10.10.11.110</strong> hace referencia a ese domino, y eso se puede conseguir indicándoselo en el archivo <strong>/etc/hosts</strong>.</p>
 <img src="Img/Pasted image 20240512093051.png">
-<p>Ahora si utilizamos de nuevo <strong>whatweb</strong> podemos ver el correo ya podemos ver el dominio, además podemos ver el correo <strong>admin@earlyaccess.htb</strong> .</p>
+<p>Ahora si utilizamos de nuevo <strong>whatweb</strong> vemos el dominio, además podemos ver el correo <strong>admin@earlyaccess.htb</strong>.</p>
 <img src="Img/Pasted image 20240512094909.png">
 <img src="Img/Pasted image 20240512094921.png">
 <h2 id="búsqueda-de-vulnerabilidades">Búsqueda de Vulnerabilidades</h2>
@@ -195,7 +167,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240512103223.png">
 <p>Viendo por otras pestañas, vemos un comentario en la pestaña <strong>Forum</strong> donde se advierte que hay un error critico en el <strong>game-scoreboard</strong>, el cual indica que el nombre de usuario arroja errores extraños en el marcador de puntuación. Tengamos esto en cuenta para volver a comprobarlo más adelante.</p>
 <img src="Img/Pasted image 20240512103906.png">
-<p>Accediendo a la pestaña <strong>Messaging</strong> vemos que podemos enviar un mensaje al correo <strong>admin@earlyaccess.htb</strong> el cual seguramente sea el usuario <strong>admin</strong> de la pagina.</p>
+<p>Accediendo a la pestaña <strong>Messaging</strong> podemos enviar un mensaje al correo <strong>admin@earlyaccess.htb</strong> el cual seguramente sea el usuario <strong>admin</strong> de la pagina.</p>
 <img src="Img/Pasted image 20240512121759.png">
 <p>Al enviar el mensaje vemos nos pone que el mensaje será leído por el usuario <strong>admin</strong>.</p>
 <img src="Img/Pasted image 20240512121929.png">
@@ -334,7 +306,7 @@ if (window.innerWidth <= 1000) {
 <p>Con esto ya explicado pasamos a la función <strong>g3_valid</strong>.</p>
 <img src="Img/Pasted image 20240512164415.png">
 <p>Lo primero que hace es validar si los dos primeros caracteres de la tercera parte de la clave son iguales al valor de la variable <strong>magic_value</strong>.</p>
-<p>Y vemos que el valor de la variable <strong>magic_value</strong> es <strong>XP</strong>-</p>
+<p>Y vemos que el valor de la variable <strong>magic_value</strong> es <strong>XP</strong>.</p>
 <img src="Img/Pasted image 20240512164526.png">
 <p>Entonces si o si la tercera parte de la clave tiene que empezar por <strong>XP</strong>.</p>
 <p>Luego de esa comparación, de nuevo realiza otra donde compara si la sumatoria de todos los caracteres en decimal de la tercera parte de la clave es igual al valor de <strong>magic_num</strong>, es decir <strong>346</strong>.</p>
@@ -375,7 +347,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240512165550.png">
 <p>Pero lo curioso aquí es que XOR es reversible</p>
 <p>Ej:</p>
-<p>En este caso queremos pillar el primer carácter, pero solo sabemos que el resultado es <strong>12</strong>, pero aplicando un <strong>XOR</strong> de 12 y el carácter que sabemos <strong>K</strong>, nos devuelve en decimal el valor restante.</p>
+<p>En este caso queremos pillar el primer carácter, pero solo sabemos que el resultado es <strong>12</strong>, pero aplicando un <strong>XOR</strong> de 12 y el carácter que sabemos, en este caso <strong>K</strong>, nos devuelve en decimal el valor restante.</p>
 <img src="Img/Pasted image 20240512165719.png">
 <p>Sabiendo esto, podemos saber los demás valores.</p>
 <img src="Img/Pasted image 20240512165940.png">
@@ -548,7 +520,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240513082617.png">
 <p>Si jugamos al juego Snake, en la pestaña <strong>Scoreboard</strong> vemos la puntuación.</p>
 <img src="Img/Pasted image 20240513082708.png">
-<p>Recordando que había un usuario el cual el nombre de usuario arroja errores extraños, probamos a poner una comilla simple <strong>’</strong> a nuestro nombre de usuario.</p>
+<p>Recordando que había un usuario, en el cual el nombre arroja errores extraños, probamos a poner una comilla simple <strong>’</strong> a nuestro nombre de usuario.</p>
 <img src="Img/Pasted image 20240513083626.png">
 <p>Al volver al marcado vemos un error de SQL, sabiendo esto ya sabemos que hay un <strong>SQL injection</strong>.</p>
 <img src="Img/Pasted image 20240513083638.png">
@@ -574,10 +546,10 @@ if (window.innerWidth <= 1000) {
 <p>Sabiendo esto miraremos las columnas de la tabla <strong>users</strong>, para tratar de conseguir credenciales que nos sean útiles.</p>
 <img src="Img/Pasted image 20240513094631.png">
 <img src="Img/Pasted image 20240513094636.png">
-<p>Ya sabiendo las columnas vamos a averiguar los datos de las columnas <strong>name</strong>, <strong>email</strong> y <strong>password</strong>.</p>
+<p>Ya sabiendo las columnas vamos a averiguar los datos de <strong>name</strong>, <strong>email</strong> y <strong>password</strong>.</p>
 <img src="Img/Pasted image 20240513094726.png">
 <img src="Img/Pasted image 20240513094751.png">
-<p>Vemos todas las contraseña de los usuarios de la pagina, pero todas esa hacheadas, por lo que vamos a utilizar la herramienta <strong>john</strong> para poder averiguar los hashes.</p>
+<p>Vemos todas las contraseña de los usuarios de la pagina, pero todas estan encriptadas, por lo que vamos a utilizar la herramienta <strong>john</strong> para poder descifrar los hashes.</p>
 <img src="Img/Pasted image 20240513101946.png">
 <div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>❯ <span class="ex">john</span> -w=/usr/share/wordlists/rockyou.txt hashes</span></code></pre></div>
 <table>
@@ -714,18 +686,18 @@ if (window.innerWidth <= 1000) {
 <span id="cb17-18"><a href="#cb17-18" aria-hidden="true"></a><span class="st">Requests/sec.: 0</span></span></code></pre></div>
 <p>Pero al tratar de acceder a algún archivo del sistema vemos que por motivos de seguridad no es posible leerlos.</p>
 <img src="Img/Pasted image 20240513110645.png">
-<p>Al tratar de leer el contenido del archivo <strong>hash.php</strong>, pero al tratarse de un archivo con extensión <strong>.php</strong> nos lo va a interpretar.</p>
+<p>Intentamos leer el contenido del archivo <strong>hash.php</strong>, pero al tratarse de una extensión <strong>.php</strong> no nos la va a interpretar.</p>
 <img src="Img/Pasted image 20240513110814.png">
-<p>Una forma de poder ver el contenido es mediante wrappers de codificación en base64</p>
+<p>Una forma de poder ver el contenido es mediante un <strong>wrapper</strong> de codificación en <strong>base64</strong>.</p>
 <img src="Img/Pasted image 20240513111229.png">
 <img src="Img/Pasted image 20240513111240.png">
-<p>Teniendo el contenido del archivo en base64, realizamos la decodificación, y lo guardamos al archivo <strong>hash.php</strong>.</p>
+<p>Teniendo el contenido del archivo en base64, realizamos la decodificación, y lo guardamos en un archivo.</p>
 <img src="Img/Pasted image 20240513111350.png">
-<p>Ahora al acceder al archivo <strong>hash.php</strong>, podemos ver el contenido de este.</p>
+<p>Si accedemos al archivo, podemos ver el contenido de este.</p>
 <img src="Img/Pasted image 20240513111546.png">
 <p>Mirando el código vemos que permite hashes personalizados si la variable <strong>debug</strong> esta establecida.</p>
 <img src="Img/Pasted image 20240513111736.png">
-<p>Pero aparte de haches se podría probar con otras funciones, en este caso vamos a utilizar la función <strong>system</strong> y donde está la variable de <strong>password</strong> a hachear, lo cambiamos y ponemos un comando a nivel de sistema para que nos lo ejecute.</p>
+<p>Pero aparte de hashes se podría probar con otras funciones, en este caso vamos a utilizar la función <strong>system</strong> y donde está la variable de <strong>password</strong> a hashear, lo cambiamos y ponemos un comando a nivel de sistema para que nos lo ejecute.</p>
 <img src="Img/Pasted image 20240513111937.png">
 <div class="sourceCode" id="cb18"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>❯ php --interactive</span></code></pre></div>
 <table>
@@ -834,7 +806,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb25-11"><a href="#cb25-11" aria-hidden="true"></a><span class="va">user=</span>api</span>
 <span id="cb25-12"><a href="#cb25-12" aria-hidden="true"></a><span class="va">password=</span>s3CuR3_API_PW!</span>
 <span id="cb25-13"><a href="#cb25-13" aria-hidden="true"></a><span class="ex">www-adm@webserver</span>:~$ </span></code></pre></div>
-<p>Veo el nombre <strong>API</strong>, intentemos acceder a la API. Por lo general, los contenedores acoplables pueden comunicarse entre sí, si están en la misma red. Intentemos encontrar la IP de la API de Docker, probablemente el nombre de host sea <strong>api</strong>.</p>
+<p>Vemos el nombre <strong>API</strong>, intentemos acceder a la API. Por lo general, los contenedores acoplables pueden comunicarse entre sí, si están en la misma red. Intentemos encontrar la IP de la API de Docker, probablemente el nombre de host sea <strong>api</strong>.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="ex">www-adm@webserver</span>:~$ nc api 1234</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="ex">api</span> [172.18.0.101] 1234 (?) <span class="bu">:</span> Connection refused</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="ex">www-adm@webserver</span>:~$ </span></code></pre></div>
@@ -915,7 +887,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a><span class="ex">10.10.11.110</span> 172.17.0.1 172.18.0.1 172.19.0.1 </span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ </span></code></pre></div>
 <p>Por lo que el nombre de <strong>game-server</strong> seguramente sea de alguno de esos contenedores desplegados.</p>
-<p>Vamos a tratar de enumerar todos los host de las 3 interfaces de red.</p>
+<p>Vamos a tratar de enumerar todos los hosts de las 3 interfaces de red.</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ for host in <span class="va">$(</span><span class="fu">seq</span> 2 254<span class="va">)</span><span class="kw">;</span> <span class="kw">do</span> <span class="kw">(</span><span class="fu">ping</span> -c 1 172.17.0.<span class="va">$host</span> <span class="op">&amp;&gt;</span>/dev/null <span class="kw">&amp;&amp;</span> <span class="bu">echo</span> <span class="st">&quot;172.17.0.</span><span class="va">$host</span><span class="st">&quot;</span> <span class="kw">&amp;)</span>; <span class="kw">done</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ for host in <span class="va">$(</span><span class="fu">seq</span> 2 254<span class="va">)</span><span class="kw">;</span> <span class="kw">do</span> <span class="kw">(</span><span class="fu">ping</span> -c 1 172.18.0.<span class="va">$host</span> <span class="op">&amp;&gt;</span>/dev/null <span class="kw">&amp;&amp;</span> <span class="bu">echo</span> <span class="st">&quot;172.18.0.</span><span class="va">$host</span><span class="st">&quot;</span> <span class="kw">&amp;)</span>; <span class="kw">done</span></span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true"></a><span class="ex">172.18.0.2</span></span>
@@ -1003,8 +975,8 @@ if (window.innerWidth <= 1000) {
 <span id="cb42-17"><a href="#cb42-17" aria-hidden="true"></a><span class="st">Game-adm (and the entire EarlyAccess Studios team).</span></span>
 <span id="cb42-18"><a href="#cb42-18" aria-hidden="true"></a></span>
 <span id="cb42-19"><a href="#cb42-19" aria-hidden="true"></a><span class="st">drew@earlyaccess:~$ </span></span></code></pre></div>
-<p>Al leer el mensaje nos damos cuenta de que han implementado como medida de seguridad el reiniciar automáticamente el servicio <strong>game-server</strong> cuando experimente una error.</p>
-<p>Si miramos dentro del contenedor <strong>game-server</strong>, con el comando <strong>ss</strong> vemos que el puerto <strong>9999</strong> esta abierto internamente.</p>
+<p>Al leer el mensaje nos damos cuenta de que han implementado como medida de seguridad el reiniciar automáticamente el servicio <strong>game-server</strong> cuando experimente un error.</p>
+<p>Si miramos dentro del contenedor <strong>game-server</strong>, con el comando <strong>ss</strong> vemos que el puerto <strong>9999</strong> está abierto internamente.</p>
 <div class="sourceCode" id="cb43"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ ss -tnlp</span></code></pre></div>
 <table>
 <colgroup>
@@ -1062,7 +1034,7 @@ if (window.innerWidth <= 1000) {
 <img src="Img/Pasted image 20240513171153.png">
 <p>Tras realizar la configuración ya podemos acceder al contenedor.</p>
 <img src="Img/Pasted image 20240513171335.png">
-<p>Si miramos en la raíz del contenedor que contiene el juego vemos un archivo <strong>entrypoint.sh</strong> y un directorio <strong>docker-entrypoint.d</strong>.</p>
+<p>Si miramos en la raíz del contenedor que contiene el juego vemos un archivo con nombre <strong>entrypoint.sh</strong> y un directorio con nombre <strong>docker-entrypoint.d</strong>.</p>
 <img src="Img/Pasted image 20240513180418.png">
 <p>El <strong>entrypoint.sh</strong> es el archivo el cual va a indicar al contenedor que hacer después de arrancar.</p>
 <div class="sourceCode" id="cb46"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ cat /entrypoint.sh </span>
@@ -1075,7 +1047,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb46-8"><a href="#cb46-8" aria-hidden="true"></a><span class="kw">done</span></span>
 <span id="cb46-9"><a href="#cb46-9" aria-hidden="true"></a><span class="fu">tail</span> -f /dev/null</span>
 <span id="cb46-10"><a href="#cb46-10" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ </span></code></pre></div>
-<p>Vemos que el archivo itera por cada valor existente en el directorio <strong>docker-entrypoint.d</strong> y si el archivo el archivo tiene los permisos necesarios, lo ejecuta.</p>
+<p>Vemos que el archivo itera por cada valor existente en el directorio <strong>docker-entrypoint.d</strong> y si el archivo tiene los permisos necesarios, lo ejecuta.</p>
 <p>Dentro del directorio <strong>docker-entrypoint.d</strong> solo hay un archivo, el cual realiza unas instrucciones.</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true"></a><span class="ex">game-tester@game-server</span>:~$ ls -la /docker-entrypoint.d </span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true"></a><span class="ex">total</span> 12</span>
@@ -1137,7 +1109,7 @@ if (window.innerWidth <= 1000) {
 </tbody>
 </table>
 <p>Teniendo ya la capacidad de tirar el servidor ahora vamos a tratar de añadir un archivo al directorio <strong>docker-entrypoint.d</strong>, pero como no tenemos permisos de escritura es probable que se este utilizando una monturas para poder traer el directorio.</p>
-<p>Si buscamos por el sistema, vemos el directorio, el cual tiene los permisos necesarios.</p>
+<p>Si buscamos por el sistema, vemos el directorio que tiene los permisos necesarios.</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ find / -name <span class="st">&#39;node-server.sh&#39;</span> <span class="op">2&gt;</span>/dev/null</span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true"></a><span class="ex">/opt/docker-entrypoint.d/node-server.sh</span></span>
 <span id="cb50-3"><a href="#cb50-3" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ ls -l /opt/ <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;docker&quot;</span></span>
@@ -1176,7 +1148,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb55-11"><a href="#cb55-11" aria-hidden="true"></a><span class="ex">-bash-4.4</span>$ ls -l /bin/bash</span>
 <span id="cb55-12"><a href="#cb55-12" aria-hidden="true"></a><span class="ex">-rwsr-xr-x</span> 1 root root 1099016 May 15  2017 /bin/bash</span>
 <span id="cb55-13"><a href="#cb55-13" aria-hidden="true"></a><span class="ex">-bash-4.4</span>$ </span></code></pre></div>
-<p>Si miramos el <strong>/etc/shadow</strong> podemos ver la contraseña hacheada del usuario <strong>game-adm</strong>.</p>
+<p>Si miramos el <strong>/etc/shadow</strong> podemos ver la contraseña hasheada del usuario <strong>game-adm</strong>.</p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true"></a><span class="ex">bash-4.4</span># grep <span class="st">&quot;game-adm&quot;</span> /etc/shadow</span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true"></a><span class="ex">game-adm</span>:<span class="va">$6$zbRQg</span>.JO7dBWcZ<span class="va">$DWEKGCPIilhzWjJ</span>/N0WRp.FNArirqqzEMeHTaA8DAJjPdu8h52v0UZncJD8Df.0ncf6X2mjKYnH19RfGRneWX/:18822:0:99999:7:::</span>
 <span id="cb56-3"><a href="#cb56-3" aria-hidden="true"></a><span class="ex">bash-4.4</span># </span></code></pre></div>
@@ -1195,7 +1167,7 @@ if (window.innerWidth <= 1000) {
 <span id="cb57-12"><a href="#cb57-12" aria-hidden="true"></a><span class="ex">1g</span> 0:00:00:03 DONE (2024-05-13 18:29) <span class="ex">0.2824g/s</span> 3905p/s 3905c/s 3905C/s hondas..gotica</span>
 <span id="cb57-13"><a href="#cb57-13" aria-hidden="true"></a><span class="ex">Use</span> the <span class="st">&quot;--show&quot;</span> option to display all of the cracked passwords reliably</span>
 <span id="cb57-14"><a href="#cb57-14" aria-hidden="true"></a><span class="ex">Session</span> completed</span></code></pre></div>
-<p>Nos conectamos como el usuario <strong>game-adm</strong> y funciona.</p>
+<p>Nos conectamos como el usuario <strong>game-adm</strong>.</p>
 <div class="sourceCode" id="cb58"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true"></a><span class="ex">drew@earlyaccess</span>:~$ su game-adm</span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true"></a><span class="ex">Password</span>: </span>
 <span id="cb58-3"><a href="#cb58-3" aria-hidden="true"></a><span class="ex">game-adm@earlyaccess</span>:/home/drew$ whoami</span>
@@ -1280,6 +1252,7 @@ if (window.innerWidth <= 1000) {
 <hr />
 <p>© <script>document.write(new Date().getFullYear());</script> - Mr. Pr1ngl3s</p>
 
+<script src="/assets/js/Nav.js" defer></script>
 
   </div>
 </body>
