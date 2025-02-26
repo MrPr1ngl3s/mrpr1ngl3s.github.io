@@ -184,63 +184,63 @@ hr {
     }
 
 
-        /* Menu */
+         /* Menu */
 
-        .sidepanel {
-            padding-top: 5%;
-            height: 18%;
-            display: none;
-            width: 100%;
-            position: fixed;
-            text-align: center;
-            z-index: 1;
-            top: 0;
-            background-color: #111;
-            overflow-x: hidden;
-            transition: 0.5s;
-      
-       }
-      
-      
-        .sidepanel a {
-            text-decoration: none;
-            margin-bottom: 0;
-            font-size: 19px;
-            color: #818181;
-            display: block;
-            transition: 0.3s;   
-        }
-        
-        .main {
-            padding-top: 5%;
-        }
-        
-        .menu {
-            position: fixed;
-            width: 100%;
-            z-index: 3;
-            background-color: rgba(22, 22, 22, 0.849);
-            top: 0;
-            left: 0;
-            text-align: center;  
-        }
-        
-        .openbtn {
-            font-size: 20px;
-            cursor: pointer;
-            background-color: transparent;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-        }
-        
-        .closebtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-        }
-      
+.sidepanel {
+    padding-top: 5%;
+    height: 19%;
+    display: none;
+    width: 100%;
+    position: fixed;
+    text-align: center;
+    z-index: 1;
+    top: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+
+}
+
+
+.sidepanel a {
+    text-decoration: none;
+    margin-bottom: 0;
+    font-size: 19px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;   
+}
+
+.main {
+    padding-top: 5%;
+}
+
+.menu {
+    position: fixed;
+    width: 100%;
+    z-index: 3;
+    background-color: rgba(22, 22, 22, 0.849);
+    top: 0;
+    left: 0;
+    text-align: center;  
+}
+
+.openbtn {
+    font-size: 20px;
+    cursor: pointer;
+    background-color: transparent;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+}
+
+.closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+}
+
       
         /* Menu */
 
