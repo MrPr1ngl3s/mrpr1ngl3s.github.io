@@ -242,6 +242,8 @@ pre.sqlite {
 
 p {
   line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 body {
  background-color: #1d1f20;
