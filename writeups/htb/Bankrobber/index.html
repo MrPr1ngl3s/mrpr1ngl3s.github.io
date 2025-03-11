@@ -227,7 +227,7 @@
 <p><img src="Img/Pasted image 20250222165907.png"></p>
 <p>Al enumerar la base de datos mediante varias consultas, no encontré mucho de interés, pero si nos fijamos en los usuario que tienen la variable <strong>FILE</strong> habilitada con la consulta <strong>1’ UNION SELECT grantee,privilege_type,3 FROM information_schema.user_privileges WHERE privilege_type=‘FILE’– -</strong>, vemos que el usuario <strong>root</strong> si que la tiene.</p>
 <p><img src="Img/Pasted image 20250222170222.png"></p>
-<p>Por tanto podríamos leer el contenido del archivo <strong>backdoorchecker.php</strong> utilizando la función <strong>LOAD_FILE()</strong> mediante este comando <strong>1’ union select load_file(“C:/xampp/htdocs/admin/backdoorchecker.php”),2,3– -</strong>.</p>
+<p>Por tanto podríamos leer el contenido del archivo <strong>backdoorchecker.php</strong> utilizando la función <strong>LOAD_FILE()</strong> mediante la siguiente consulta <strong>1’ union select load_file(“C:/xampp/htdocs/admin/backdoorchecker.php”),2,3– -</strong>.</p>
 <p><img src="Img/Pasted image 20250222171622.png"></p>
 <p>Viendo que no nos interpreta el código <strong>PHP</strong> Interceptamos la petición con <strong>BurpSuite</strong> y así poder visualizar mejor el contenido.</p>
 <p><img src="Img/Pasted image 20250222180334.png"></p>
